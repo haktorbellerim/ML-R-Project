@@ -228,9 +228,15 @@ ggplot(df_normalised, aes(x = AlcoholDrinking, fill = HeartDisease)) +
 
 **Asthma: Whether the individual has asthma**
 
-**Secondary Findings**: Studies have found that those with active asthma or asthma medication use, and those who sought treatment for asthma within the previous year, are twice as likely to have a heart attack than those without active asthma (Lincoff, 2018). Asthma can lead to heart failure as the part of the heart that pumps oxygenated-blood around the body might thicken and enlarge (European Lung Foundation, 2021). This left ventricular hypertrophy can result in elevation of pressure within the heart and sometimes even poorer pumping action.
+Secondary Findings: Studies have found that those with active asthma or asthma medication use, and those who sought treatment for asthma within the previous year, are twice as likely to have a heart attack than those without active asthma (Lincoff, 2018). Asthma can lead to heart failure as the part of the heart that pumps oxygenated-blood around the body might thicken and enlarge (European Lung Foundation, 2021). This left ventricular hypertrophy can result in elevation of pressure within the heart and sometimes even poorer pumping action.
 
-**Data Findings (chunk 20)**: We see a higher proportion of asthmatic individuals having heart disease, indicating that having asthma increases the probability of developing heart disease. Again, this corroborates with our secondary research findings.
+Data Findings: We see a higher proportion of asthmatic individuals having heart disease, indicating that having asthma increases the probability of developing heart disease. Again, this corroborates with our secondary research findings.
+
+```{r asthma, warning = FALSE, message = FALSE, results = FALSE}
+ggplot(df_normalised, aes(x = Asthma, fill = HeartDisease)) + 
+  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
+  labs(y = "Proportion", title = "Asthma vs Heart Disease")
+```
 
 **KidneyDisease: Whether the individual has kidney disease (not including kidney stones, bladder infection or incontinence)**
 
@@ -535,11 +541,7 @@ ggplot(df_normalised, aes(x = factor(GenHealth, level = ranking),
 ```
 
 **Chunk 20**
-```{r asthma, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x = Asthma, fill = HeartDisease)) + 
-  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
-  labs(y = "Proportion", title = "Asthma vs Heart Disease")
-```
+
 
 **Chunk 21**
 ```{r kidney_disease, warning = FALSE, message = FALSE, results = FALSE}
