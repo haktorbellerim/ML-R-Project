@@ -1,21 +1,3 @@
----
-title: "CDC Heart Disease Indicators - Machine Learning Project"
-author: "Nur Hakim Bin Zahrin"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
-output:
-  pdf_document:
-    toc: yes
-  html_document:
-    df_print: paged
-    number_sections: yes
-    theme: readable
-    toc: yes
-    fontsize: 11pt
-    geometry: margin=1in
----
-
-\newpage
-
 # Data
 Throughout this report, we will be working on the dataset "Personal Key Indicators of Heart Disease" which can be found on the Kaggle platform (Kamil, 2022). This dataset is provided by the Centres of Disease Control and Prevention (CDC) in the United States (US). Original data is gathered through annual telephone surveys conducted on more than 400,000 US residents which consist of factors that directly or indirectly influence heart disease. The dataset that we will be using has been cleaned and reduced from nearly 300 variables to about 20 variables, after selecting variables that are usable for analysis purposes. Each row in the dataset corresponds to the record for a surveyee.
 
@@ -25,19 +7,24 @@ Heart disease is one of the leading causes of death for people in the US. About 
 In this report, we will be determining a good prediction performance model for CDC as well as US residents on whether if an individual will or will not develop heart disease, given the lifestyle factors and health conditions of that individual. For CDC, we are looking to identify key predictors of heart disease for CDC to focus on when raising awareness on prevention of heart disease, to reduce healthcare cost. For the US residents, when they notice a slight issue in one of these key indicators, they should seek medical assistance as soon as possible, to prevent it early. We will be looking through the *Descriptive, Diagnostic, Predictive and Prescriptive* angles. 
 
 # Importing & Pre-processing/Cleaning of Dataset
+```{r import_data, message = FALSE, warning = FALSE}
 df = read.csv("heart_2020_cleaned.csv", stringsAsFactors = TRUE)
 str(df)
+```
 
 ## Checking for Missing Data
 Before proceeding forward with any data transformations, our team looked to identify whether there were any missing data in the dataset using the *naniar* package. Fortunately, the data had already been pre-cleaned by the Kaggle creator and no missing values were seen.
 
+```{r missing_data, message = FALSE, warning = FALSE}
 library(naniar)
 vis_miss(df, warn_large_data = FALSE)
+```
 
 ## Checking for Skewness
 Taking a similar approach to our Kaggle competition, we explored the data set and investigated on the relative skewness of the independent variables. A heavily skewed dataset would result in biasedness towards higher values, negatively affecting our model's predictive performance later.
 For the numerical variables, after plotting the histograms and calculating the skewness values, we found the variables *BMI*, *PhysicalHealth* and *MentalHealth* to be significantly skewed, with only *SleepTime* having a skewness of < 1 **(chunk 3)**. As such, we performed a logarithmic transformation to reduce the skewness. 
 
+```{r skewness, message = FALSE, warning = FALSE}
 library(tidyverse)
 library(PerformanceAnalytics)
 library(ggplot2)
@@ -66,10 +53,12 @@ df %>%
   ggplot(aes(SleepTime)) +
   geom_histogram(bins=20) +
   theme_bw()
+```
 
 ## Logarithmic Transformation
 We added +1 to our logarithmic transform to remove any negative values that would potentially affect our predictive model later. We then re-plotted the histograms to see the effect of our log transformation. 
 
+```{r log_transformation,warning = FALSE, message = FALSE}
 df_normalised <- df %>% 
   mutate(
     BMI = log(BMI+1),
@@ -90,15 +79,17 @@ df_normalised %>%
   ggplot(aes(MentalHealth)) +
   geom_histogram(bins=20) +
   theme_bw()
-
-ggplot(df_normalised, aes(x=HeartDisease)) + geom_bar() + 
-  geom_text(stat='count', aes(label=..count..), vjust=-0.2)
-
+```
 
 ## Checking for Class Imbalance 
 Our group also investigated whether our data set was imbalanced - whereby one of the classes (minority) in a two-class data set is represented by a very small number of instances in comparison to the other (majority) class (Garcia & Mollineda, 2012). Class imbalance may have significant detrimental effects on our prediction performance because they are often biased towards the majority class. To ensure that no misclassification occurs within the minority class, this class imbalance issue needs to be resolved. 
 
 As observed in the graph below, our initial suspicions were true **(chunk 5)**. Since the minority class (HeartDisease = "Yes") is the more important class for our prediction later, our group looked to address this class imbalance issue later in our *Predictive Analytics* section. 
+
+```{r class_imbalance, warning = FALSE, message = FALSE}
+ggplot(df_normalised, aes(x=HeartDisease)) + geom_bar() + 
+  geom_text(stat='count', aes(label=..count..), vjust=-0.2)
+```
 
 # Descriptive Analytics
 
@@ -116,10 +107,12 @@ For our numerical variables, we utilized the *ggplot2* package to draw up densit
 
 **Secondary Findings**: An individual with a BMI >= 25.0 is overweight. Excess weight can lead to fatty material building up in your arteries, blood vessels carrying blood to your organs. If these arteries get damaged & clogged, it can lead to a heart attack and increase risk of heart disease (BHF, n.d.). Furthermore, obese individuals have higher chance of developing diabetes, which is 2-4 times more likely to be at risk of heart disease (CDC, n.d.). 
 
+```{r bmi, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x = BMI, fill = HeartDisease)) + 
   geom_density(alpha = 0.5) + scale_fill_manual(values=c("#0ced3d", "#ed0c0c")) + 
   labs(title = "BMI vs Heart Disease")
 summary(df_normalised$BMI)
+```
 
 **Data Findings (chunk 6)**: We see that the mean BMI of individuals with heart disease is higher than that of individuals without heart disease, which indicates to us that individuals with higher BMI are more likely to develop heart disease . This is also consistent with our secondary findings that indicate that BMI has an effect on an individual developing heart disease. 
 
@@ -129,10 +122,12 @@ summary(df_normalised$BMI)
 
 **Data Findings (chunk 7)**: We see that individuals with good physical health were less likely to develop heart disease . Again, this corroborates with our secondary research findings.
 
+```{r physical_health, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x = PhysicalHealth, fill = HeartDisease)) + 
   geom_density(alpha = 0.5) + scale_fill_manual(values=c("#0ced3d", "#ed0c0c")) + 
   labs(title = "Physical Health vs Heart Disease")
 summary(df_normalised$PhysicalHealth)
+```
 
 **MentalHealth: No. of days in past 30 days where individual had poor mental health**
 
@@ -140,10 +135,12 @@ summary(df_normalised$PhysicalHealth)
 
 **Data Findings (chunk 8)**: Similar to our findings from *PhysicalHealth*, individuals with good mental health were less likely to develop heart disease . Notwithstanding, the distribution is more uniform here compared to in *PhysicalHealth*. Again, this corroborates with our secondary research findings.
 
+```{r mental_health, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised,aes(x = MentalHealth,fill = HeartDisease)) + 
   geom_density(alpha = 0.5) + scale_fill_manual(values=c("#0ced3d", "#ed0c0c")) + 
   labs(title = "Mental Health vs Heart Disease")
 summary(df_normalised$MentalHealth)
+```
 
 **SleepTime: No. of hours of sleep an individual gets in a 24-hour period**
 
@@ -151,9 +148,11 @@ summary(df_normalised$MentalHealth)
 
 **Data Findings (chunk 9)**: From our graph, less hours of sleep has an effect on an individual developing heart disease as observed in the height in the density curve for individuals without heart disease. For example, at SleepTime = 8, we can see a higher proportion of people without heart disease sleeping 8 hours on average compared to those with heart disease. Again, this corroborates with our secondary research findings.
 
+```{r sleep_time, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised,aes(x = SleepTime, fill = HeartDisease)) + 
   geom_density(alpha = 0.5) + scale_fill_manual(values=c("#0ced3d", "#ed0c0c")) + 
   labs(title = "Sleep Time vs Heart Disease")
+```
   
 ## Exploratory Data Analysis - Dependent Variables (Categorical)
 For our categorical variables, we utilized the *ggplot2* package to draw up bar plots to compare the proportion of individuals with and without heart disease against our independent variables.
@@ -164,9 +163,11 @@ For our categorical variables, we utilized the *ggplot2* package to draw up bar 
 
 **Data Findings (chunk 10)**: We see a greater proportion of individuals developing heart disease when they have smoked at least 100 cigarettes in their entire life, which indicates that smoking increases the likelihood of an individual developing heart disease . Again, this corroborates with our secondary research findings. 
 
+```{r smoking, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x = Smoking, fill = HeartDisease)) + 
   geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
   labs(y = "Proportion", title = "Smoking vs Heart Disease")
+```
 
 **AlcoholDrinking: Whether individual is a heavy drinker (adult men: >14 drinks/week and adult women: >7 drinks/week)**
 
@@ -174,9 +175,11 @@ ggplot(df_normalised, aes(x = Smoking, fill = HeartDisease)) +
 
 **Data Findings (chunk 11)**: Surprisingly, our graph shows that there is a greater proportion of non-heavy drinkers developing heart disease, contradicting with our secondary research findings. In the *diagnostic analytics* portion of our research, we will further discuss this relationship to understand whether any causal effects are present. 
 
+```{r alcohol_drinking, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x = AlcoholDrinking, fill = HeartDisease)) + 
   geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
   labs(y = "Proportion", title = "Alcohol Consumption vs Heart Disease")
+```
 
 **Stroke: Whether individual had stroke before**
 
@@ -184,11 +187,23 @@ ggplot(df_normalised, aes(x = AlcoholDrinking, fill = HeartDisease)) +
 
 **Data Findings**: It strongly suggests that individuals who had stroke before have a higher possibility of developing heart disease **(chunk 12)**. Again, this corroborates with our secondary research findings. 
 
+```{r stroke, warning = FALSE, message = FALSE, results = FALSE}
+ggplot(df_normalised, aes(x = Stroke, fill = HeartDisease)) + 
+  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
+  labs(y = "Proportion", title = "Stroke vs Heart Disease")
+```
+
 **DiffWalking: Whether individual has serious difficulties walking or climbing stairs**
 
 **Secondary Findings**: When an individual has serious difficulties walking, he/she tends to engage in less physical activities. As a result, the blood circulation to the muscles in the limbs decrease further, resulting in breathlessness and tiredness of the muscles, which are symptoms of heart failure.
 
 **Data Findings (chunk 13)**: Like our findings in *Stroke*, a very large proportion of individuals who face difficulties walking/climbing stairs have heart disease, indicating that there is a higher probability for these individuals to develop heart disease. Again, this corroborates with our secondary research findings. 
+
+```{r diff_walking, warning = FALSE, message = FALSE, results = FALSE}
+ggplot(df_normalised, aes(x = DiffWalking, fill = HeartDisease)) + 
+  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
+  labs(y = "Proportion", title = "Walking Difficulty vs Heart Disease")
+```
 
 **Sex: Gender**
 
@@ -196,11 +211,24 @@ ggplot(df_normalised, aes(x = AlcoholDrinking, fill = HeartDisease)) +
 
 **Data Findings (chunk 14)**: We see a larger proportion of males developing heart disease, which indicates to us that males have a higher probability of developing the disease. Again, this corroborates with our secondary research findings. 
 
+```{r sex, warning = FALSE, message = FALSE, results = FALSE}
+ggplot(df_normalised, aes(x=Sex, fill=HeartDisease)) + geom_bar(position = "fill") + 
+  scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
+  labs(y = "Proportion", title = "Sex vs Heart Disease")
+```
+
 **AgeCategory: Age Group**
 
 **Secondary Findings**: People age 65 and older are much more likely than younger people to suffer from hart attack or develop heart disease. Aging can cause changes in the heart and blood vessels. When an individual gets older, the heart cannot beat as fast during physical activities or times of stress. As a result, increasing the individual risk of heart disease. Furthermore, older individuals face increased stiffness of the large arteries called arteriosclerosis, or hardening of the arteries, which result in high blood pressure as well (NIH, 2018). 
 
 **Data Findings (chunk 15)**: The proportion of individuals who have heart disease steadily increases with age, indicating that older individuals have a greater probability of developing heart disease . Again, this corroborates with our secondary research findings.  
+
+```{r age_category, warning = FALSE, message = FALSE, results = FALSE}
+ggplot(df_normalised, aes(x = AgeCategory, fill = HeartDisease)) + 
+  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
+  labs(y = "Proportion", title = "Age vs Heart Disease") + 
+  scale_x_discrete(guide = guide_axis(angle = 90))
+```
 
 **Race**
 
@@ -208,23 +236,50 @@ ggplot(df_normalised, aes(x = AlcoholDrinking, fill = HeartDisease)) +
 
 **Data Findings (chunk 16)**: We observed that Asians and Hispanics have a lower proportion of individuals developing heart disease, which contradicts our secondary research findings. Similar to *AlcoholDrinking*, we will further discuss this relationship to understand whether any causal effects are present in our diagnostic analytics portion. 
 
+```{r race, warning = FALSE, message = FALSE, results = FALSE}
+ggplot(df_normalised, aes(x = Race, fill = HeartDisease)) + 
+  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
+  labs(y = "Proportion", title = "Race vs Heart Disease") + 
+  scale_x_discrete(guide = guide_axis(angle = 50))
+```
+
 **Diabetic: Whether individual has diabetes**
 
 **Secondary Findings**: High blood sugar can damage blood vessels and nerves that control an individual's heart. Individuals with diabetes are more likely to suffer from other conditions that raise the risk for heart disease, for example, high blood pressure and high cholesterol. High blood pressure increases the force of blood through arteries and can damage artery walls. High cholesterol can lead to plaque forming on damaged artery walls (CDC, n.d.). Furthermore, those with gestational diabetes (diabetes during pregnancy) has double the risk of heart disease for women with an average age of 48 (Lewin, 2021).
 
 **Data Findings (chunk 17)**: We see that diabetes has an effect on an individual contracting heart disease, with borderline diabetes having an intermediate pattern between having and not having diabetes. Our findings contradict our secondary research on gestational diabetes which seems to pose a lower risk in contracting heart disease according to our graph, despite it doubling the risk for women as stated in our secondary findings. Similar to *AlcoholDrinking* and *Race*, we will further discuss this relationship to understand whether any causal effects are present in our diagnostic analytics portion. 
 
+```{r diabetic, warning = FALSE, message = FALSE, results = FALSE}
+ggplot(df_normalised, aes(x = Diabetic, fill = HeartDisease)) + 
+  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
+  labs(y = "Proportion", title = "Diabetic vs Heart Disease")
+```
+
 **PhysicalActivity: Whether the individual has done any physical activity/exercise during the past 30 days other than their regular job**
 
 **Secondary Findings**: Not getting enough physical activity can lead to heart disease — even for people who have no other risk factors. It can also increase the likelihood of developing other heart disease risk factors, including obesity, high blood pressure, high blood cholesterol, and type 2 diabetes. Engaging in regular physical activities bring various benefits to the body such as reducing feelings of anxiety, improving sleep quality and many others (CDC, n.d.).
 
-**Data Findings (chunk 18)**: There is a larger proportion of individuals who don't engage in any physical activities/exercises developing heart disease, which indicates a less active and fit individual have a higher probability of contracting heart disease. Again, this corroborates with our secondary research findings.  
+**Data Findings (chunk 18)**: There is a larger proportion of individuals who don't engage in any physical activities/exercises developing heart disease, which indicates a less active and fit individual have a higher probability of contracting heart disease. Again, this corroborates with our secondary research findings. 
+
+```{r physical_activity, warning = FALSE, message = FALSE, results = FALSE}
+ggplot(df_normalised, aes(x = PhysicalActivity, fill = HeartDisease)) + 
+  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
+  labs(y = "Proportion", title = "Physical Activity vs Heart Disease")
+```
 
 **GenHealth: individual's perception of their general health**
 
 **Secondary Findings**: Individuals who lives a healthy lifestyle will have lower chances of developing heart diseases. This is because leading risk factors of heart diseases such as high blood pressure, high-LDL cholesterol, diabetes, smoking, obesity, unhealthy diet and physical inactivity will not be characteristics of the individual (CDC, n.d.).
 
 **Data Findings (chunk 19)**: We see that the proportion of individuals with heart disease increases with poorer perceptions of their general health levels. We can suggest that a better general health lowers the chances of developing heart disease for the individual. Again, this corroborates with our secondary research findings.
+
+```{r gen_health, warning = FALSE, message = FALSE, results = FALSE}
+ranking = c("Poor", "Fair", "Good", "Very good", "Excellent")
+ggplot(df_normalised, aes(x = factor(GenHealth, level = ranking), 
+                          fill = HeartDisease)) + geom_bar(position = "fill") + 
+  scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
+  labs(x="General Health", y="Proportion",title="General Health vs Heart Disease")
+```
 
 **Asthma: Whether the individual has asthma**
 
@@ -242,13 +297,25 @@ ggplot(df_normalised, aes(x = Asthma, fill = HeartDisease)) +
 
 **Secondary Findings**: When the kidneys does not work well, more stress is put on the heart. If an individual suffers from chronic kidney disease, their heart needs to pump harder to get blood to the kidneys, which can lead to heart disease (CDC, n.d.).
 
-**Data Findings (chunk 21)**: A very huge proportion of individuals with kidney disease has heart disease compared to those with no kidney disease, suggesting that having kidney disease increases chances of contracting heart disease. Again, this corroborates with our secondary research findings. 
+**Data Findings**: A very huge proportion of individuals with kidney disease has heart disease compared to those with no kidney disease, suggesting that having kidney disease increases chances of contracting heart disease. Again, this corroborates with our secondary research findings. 
+
+```{r kidney_disease, warning = FALSE, message = FALSE, results = FALSE}
+ggplot(df_normalised, aes(x = KidneyDisease, fill = HeartDisease)) + 
+  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
+  labs(y = "Proportion", title = "Kidney Disease vs Heart Disease")
+```
 
 **SkinCancer: Whether the individual has skin cancer**
 
 **Secondary Findings**: Malignant melanoma is the third most common skin cancer with the risk of developing metastasis to virtually all organs including the heart, which can manifest as arrhythmia, right ventricular obstruction, heart failure, or pericardial effusion (Babar, Lak, Chawla, Mahalwar, Maroo, 2020).
 
-**Data Findings (chunk 22)**: We see a larger proportion of individuals skin cancer developing heart disease, suggesting that having skin cancer increases the likelihood of an individual developing heart disease. Again, this corroborates with our secondary research findings.
+**Data Findings**: We see a larger proportion of individuals skin cancer developing heart disease, suggesting that having skin cancer increases the likelihood of an individual developing heart disease. Again, this corroborates with our secondary research findings.
+
+```{r skin_cancer, warning = FALSE, message = FALSE, results = FALSE}
+ggplot(df_normalised, aes(x = SkinCancer, fill = HeartDisease)) + 
+  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
+  labs(y = "Proportion", title = "Skin Cancer vs Heart Disease")
+```
 
 # Diagnostic Analytics
 Since some of the data findings above contradicts with our secondary findings, we decided to analyse for potential causal effects for these following variables: AlcoholDrinking, Race and Diabetes.
@@ -256,24 +323,162 @@ Since some of the data findings above contradicts with our secondary findings, w
 **Alcohol Drinking** 
 Our data finding showed that a greater proportion of non-heavy drinkers developed heart disease which contradicts with our secondary findings on how alcohol consumption can raise the levels of fat in the blood, thereafter, clog arteries and thins the heart muscle, affecting the ability of heart to pump blood efficiently. With that, we will use a Causal Inference Framework between AlcoholDrinking and HeartDisease to identify any potential causal effect.
 
-From our analysis, a higher percentage of those who do not drink alcohol develop heart disease (8.8%) as compared to those who drink alcohol (5.2%) **(chunk 23)**. After matching, we can observe that the percentage of those who do not drink alcohol and develop heart disease (6.2%) is still higher than those who drink alcohol (5.2%) **(chunk 29)**. In other words, opposing our secondary research where AlcoholDrinking leads to increased probability of developing heart disease.
+From our analysis, a higher percentage of those who do not drink alcohol develop heart disease (8.8%) as compared to those who drink alcohol (5.2%). After matching, we can observe that the percentage of those who do not drink alcohol and develop heart disease (6.2%) is still higher than those who drink alcohol (5.2%). In other words, opposing our secondary research where AlcoholDrinking leads to increased probability of developing heart disease.
+
+```{r match_alcohol_drinking1, warning = FALSE, message=FALSE}
+library(expss)
+cross_cpct(df, HeartDisease, AlcoholDrinking)
+```
+
+```{r match, message = FALSE, warning = FALSE}
+library(MatchIt)
+```
+
+```{r match_alcohol_drinking2, warning = FALSE, message=FALSE}
+matching = matchit(AlcoholDrinking ~ BMI + Smoking + Stroke + PhysicalHealth + 
+                     MentalHealth + DiffWalking + Sex + AgeCategory + Race + 
+                     Diabetic + PhysicalActivity + GenHealth + SleepTime + 
+                     Asthma + KidneyDisease + SkinCancer, data = df, 
+                   method = "nearest", ratio = 1)
+result = summary(matching)
+```
+
+```{r match_alcohol_drinking3, warning = FALSE, message=FALSE}
+plot(matching, type = "hist")
+```
+
+```{r match_alcohol_drinking4, warning = FALSE, message=FALSE}
+plot(matching, type = "jitter")
+```
+
+```{r match_alcohol_drinking5, warning = FALSE, message=FALSE}
+Matched = match.data(matching)
+Matched$HeartDisease = as.factor(Matched$HeartDisease)
+Matched$AlcoholDrinking = as.factor(Matched$AlcoholDrinking)
+```
+
+```{r match_alcohol_drinking6, warning = FALSE, message = FALSE}
+cross_cpct(Matched, HeartDisease, AlcoholDrinking)
+```
 
 **Race** 
 Our data finding showed that Asians and Hispanics have a lower proportion of individuals developing heart disease while White Americans have higher risk which contradicts to our secondary findings where social disparity for example, income level, puts the Black, Hispanic and Asian people at a disadvantage, increasing their risk for heart disease. As such, we will again conduct a causality test between the white population and the rest to identify any potential causal effect.
 
 In this causality test, we were interested in exploring if there would be any changes in probability of an individual developing heart disease if they were white (9.2%) compared to if they were in any other race groups, grouping them under "not-white" (6.5%) **(chunk 31)**. After matching, we can observe that the percentage of those who are not-white and develop heart disease (7.6%) is still lower than those who are white (6.5%) **(chunk 36)**. Hence, opposing our secondary research where the non-white leads to increased probability of developing heart disease. 
 
+```{r match_race1, warning = FALSE, message = FALSE}
+data0 = df
+data0$NotWhite = ifelse(data0$Race == "White", "No", "Yes")
+data0$Race = NULL
+data0[sapply(data0, is.character)] <- lapply(data0[sapply(data0,is.character)],
+                                             as.factor)
+```
+
+```{r match_race2, warning = FALSE, message = FALSE}
+library(expss)
+cross_cpct(data0, HeartDisease, NotWhite)
+```
+
+```{r match_race3, warning = FALSE, message = FALSE}
+matching1 = matchit(NotWhite ~ BMI + Smoking + Stroke + PhysicalHealth + 
+                      MentalHealth + DiffWalking + Sex + AgeCategory + 
+                      AlcoholDrinking + Diabetic + PhysicalActivity + GenHealth + 
+                      SleepTime + Asthma + KidneyDisease + SkinCancer, 
+                    data = data0, method = "nearest", ratio = 1)
+result = summary(matching1)
+```
+
+```{r match_race4, warning = FALSE, message = FALSE}
+plot(matching1, type = "hist")
+```
+
+```{r match_race5, warning = FALSE, message = FALSE}
+plot(matching1, type = "jitter")
+```
+
+```{r match_race6, warning = FALSE, message = FALSE}
+Matched1 = match.data(matching1)
+Matched1$HeartDisease = as.factor(Matched1$HeartDisease)
+Matched1$NotWhite = as.factor(Matched1$NotWhite)
+```
+
+```{r match_race7, warning = FALSE, message = FALSE}
+cross_cpct(Matched1, HeartDisease, NotWhite)
+```
+
 **Diabetes & during Pregnancy** 
 Our data finding showed that diabetes has greater effects on developing heart disease (22%) as compared to Gestational Diabetes (Diabetes during Pregnancy) (4.2%) **(chunk 40)** , contradicting with our secondary finding where pregnant women suffer from double the risk of developing heart disease, whether if they had healthy blood sugar levels, pre-diabetes or Type 2 diabetes. Hence, we will be conducting a causality test to investigate the effect of the treatment of "being pregnant with diabetes" on the probability of heart disease. 
 
 After matching, we can observe that either type of Diabetes does not have a significant difference on the probability of developing heart disease, with our matched results showing a higher probability of developing heart disease for diabetes (6.9%) rather than gestational diabetes (4.2%) **(chunk 45)**. 
+
+```{r match_diabetes1, warning = FALSE, message = FALSE}
+df0 = df
+df0_PregDiab = subset(df0,df0$Diabetic == "Yes (during pregnancy)")
+df0_PregDiab[sapply(df0_PregDiab, is.character)] <- lapply(df0_PregDiab
+                                                           [sapply(df0_PregDiab,
+                                                                  is.character)]
+                                                           ,as.factor)
+```
+
+```{r match_diabetes2, warning = FALSE, message = FALSE}
+df1 = df
+df1_Diabetes = subset(df1, df1$Diabetic == "Yes")
+df1_Diabetes[sapply(df1_Diabetes, is.character)] <- lapply(df1_Diabetes
+                                                           [sapply(df1_Diabetes,
+                                                                  is.character)]
+                                                           ,as.factor)
+```
+
+```{r match_diabetes3, warning = FALSE, message = FALSE}
+data2 = rbind(df1_Diabetes, df0_PregDiab)
+```
+
+```{r match_diabetes4, warning = FALSE, message = FALSE}
+library(expss)
+cross_cpct(data2, HeartDisease, Diabetic)
+```
+
+```{r match_diabetes5, warning = FALSE, message = FALSE}
+matching2 = matchit(Diabetic ~ BMI + Smoking + Stroke + PhysicalHealth +
+                      MentalHealth + DiffWalking + Sex + AgeCategory + 
+                      AlcoholDrinking + Race + PhysicalActivity + GenHealth + 
+                      SleepTime + Asthma + KidneyDisease + SkinCancer, 
+                    data = data2, method = "nearest", ratio = 1)
+result = summary(matching2)
+```
+
+```{r match_diabetes6, warning = FALSE, message = FALSE}
+plot(matching2, type = "hist")
+```
+
+```{r match_diabetes7, warning = FALSE, message = FALSE}
+plot(matching2, type = "jitter")
+```
+
+```{r match_diabetes8, warning = FALSE, message = FALSE}
+Matched2 = match.data(matching2)
+Matched2$HeartDisease = as.factor(Matched2$HeartDisease)
+Matched2$Diabetic = as.factor(Matched2$Diabetic)
+```
+
+```{r match_diabetes9, warning = FALSE, message = FALSE}
+cross_cpct(Matched2, HeartDisease, Diabetic)
+```
 
 In conclusion, AlcoholDrinking, Race(Not-White) and Gestational Diabetes in our data set provided different insights from our secondary findings and after matching the data, we are still unable to tell the actual effect of AlcoholDrinking and Race, with Gestational Diabetes being insignificant. 
 
 # Predictive Analytics
 
 ## Splitting the Data Set
-Before balancing the data, we split the data set to train and test set where we utilize the train set to build the model and the test set to test our final model. **(chunk 46)**
+Before balancing the data, we split the data set to train and test set where we utilize the train set to build the model and the test set to test our final model.
+
+```{r data_split, warning = FALSE, message = FALSE}
+library(caTools)
+set.seed(104)
+split = sample.split(df_normalised$HeartDisease, SplitRatio = 0.70)
+train_df = subset(df_normalised, split == TRUE)
+test_df = subset(df_normalised, split == FALSE)
+```
 
 ## Correcting the Class Imbalance 
 To correct the data class imbalance, we can undersample or oversample the data set. 
@@ -281,54 +486,184 @@ Undersampling randomly selects examples from the majority class and deleting the
 
 Oversampling randomly selecting examples from the minority class, with replacement, and adding them to the training data set. Oversampling helps to balance the class distribution without adding new information to the data set. A drawback to this method would be overfitting considering that it replicates existing examples from the minority class.Despite losing 90% of our original data set, we decided to proceed with the random undersampling approach as it has empirically been shown to be one of the most effective resampling methods (Garcia & Mollineda, 2012). Also, 10% of the original data set still leaves our group with approximately 19000 observations to work from.  
 
-We utilized the *ROSE* package to run the random undersampling. 1855334 observations from the majority class were removed, leaving 19161 observations in each class. **(chunk 47)**
+We utilized the *ROSE* package to run the random undersampling. 1855334 observations from the majority class were removed, leaving 19161 observations in each class.
+
+```{r data_balancing, warning = FALSE, message = FALSE}
+library(ROSE)
+library(ROCR)
+
+undersample_df = ovun.sample(HeartDisease~., data = train_df, 
+                             method = "under", N = 38322)$data
+
+ggplot(undersample_df, aes(x=HeartDisease)) + geom_bar() + 
+  geom_text(stat='count', aes(label=..count..), vjust=-0.2)
+```
 
 ## Logistic Regression Model
 
+```{r logmodel, warning = FALSE, message = FALSE}
+library(caret)
+fitControl = trainControl(method = "cv", number = 10, classProbs = TRUE, 
+                          summaryFunction = twoClassSummary)
+```
+
 ### Pearson Correlation Matrix
-To determine the more significant and important variables for our regression model, we plotted a pearson correlation matrix to visualize the correlations between the different variables.**(chunk 48)** Before plotting, we converted all the factor variables to numeric variables. After plotting, we observed there were minimal interaction effect between the independent variables as well as no signs of multicollinearity present. Thus, we included all the independent variables to build our first logistic regression model.  **(chunk 49)**
+To determine the more significant and important variables for our regression model, we plotted a pearson correlation matrix to visualize the correlations between the different variables.**(chunk 48)** Before plotting, we converted all the factor variables to numeric variables. After plotting, we observed there were minimal interaction effect between the independent variables as well as no signs of multicollinearity present. Thus, we included all the independent variables to build our first logistic regression model.
+
+```{r correlation_matrix, warning = FALSE, message = FALSE}
+train_df[sapply(train_df, is.factor)] <- lapply(train_df[sapply(train_df, 
+                                                                is.factor)], 
+                                                as.numeric)
+
+library(corrplot)
+pearson = cor(train_df, method = "pearson")
+corrplot(pearson, method = "color", addCoef.col="black", order = "AOE", 
+         tl.cex = 0.7, tl.offset = 1,  number.cex=0.5)
+
+```
 
 **In-Sample Model Performance [Logistic Regression]**
-For our first Logistics regression model, we are predicting the probability of Heart Disease using all independent variables & evaluate whether they are statiscally significant **(chunk 50)**
+For our first Logistics regression model, we are predicting the probability of Heart Disease using all independent variables & evaluate whether they are statiscally significant
+
+```{r log_summary, warning = FALSE, message = FALSE}
+heart_log = glm(HeartDisease ~ ., data = undersample_df, family = "binomial")
+set.seed(104)
+train(HeartDisease ~ ., data = undersample_df, method = "glm", 
+      family = "binomial", trControl = fitControl, metric = "ROC" )
+summary(heart_log)
+```
 
 Next, we wanted to find difference between the null deviance and the residual deviance to show how our model is doing against the null model (a model with only the intercept). However, we observed for every variable added till Skin cancer, the Pr(>Chi) remains statistically significant at 0.01% level.In other words, all the variables can be used to explain the models' variation while remaining statistically significant.**(chunk 51)**Since there are no signs of variables having multicollinearity & Pr(Chi) < 0.01, as much as possible we want to keep the variables in our models.
 
+```{r anova, warning = FALSE, message = FALSE}
+anova(heart_log, test="Chisq")
+```
 As such, we are only excluding variables from our log model based on secondary research & high p-values that have unnecessary "noises" to our log model.
 
-Variables P-Values that are > 0.05:  **(chunk 52)**
-Included variables : 
+```{r variable_removal, warning = FALSE, message = FALSE}
+undersample_logdf  = undersample_df
+
+Age_category_Cat = undersample_logdf$AgeCategory
+AgeCategory_Num = as.data.frame(model.matrix(~Age_category_Cat))
+AgeCategory_Num[1] = NULL
+undersample_logdf = cbind(undersample_logdf, AgeCategory_Num)
+undersample_logdf$AgeCategory = NULL
+
+Race_Cat = undersample_logdf$Race
+Race_Num = as.data.frame(model.matrix(~Race_Cat))
+Race_Num[1] = NULL
+undersample_logdf = cbind(undersample_logdf, Race_Num)
+undersample_logdf$Race = NULL
+
+Diabetic_Cat = undersample_logdf$Diabetic
+Diabetic_Num = as.data.frame(model.matrix(~Diabetic_Cat))
+Diabetic_Num[1] = NULL
+undersample_logdf = cbind(undersample_logdf, Diabetic_Num)
+undersample_logdf$Diabetic = NULL
+```
+
+Variables P-Values that are > 0.05:
+Included variables: 
 PhysicalActivityYes (from secondary research, individuals with good physical health were less likely to develop heart disease).
 RaceWhite (majority of Americans are white in the dataset, removing them would result in a extremely small dataset).                          
 DiabeticNo, borderline diabetes (from secondary research, individuals who are diabetic were more likely to develop heart disease).
 
-Excluded variables : **(chunk 53)**
+Excluded variables:
 AgeCategory25-29 (comparing age categories 18-24/25-29 as baseline young Americans to older age categories for a better comparison).
 RaceOther (ther races that were not categorized properly result us to not draw conclusions unless further data categorization).
 DiabeticYes - during pregnancy (P-value > 0.6 & matching results were inconclusive whether this variable causes heart disease, therefore we removed it).
 
-After removing the insignificant variables with justified secondary research, we built a model w/interpretability with a ROC of **0.8399337** as our final model. **(chunk 54)**
+```{r log_summary2, warning = FALSE, message = FALSE}
+heart_log2 = glm(HeartDisease ~ . -`Age_category_Cat25-29` -Race_CatOther 
+                 -`Diabetic_CatYes (during pregnancy)`,
+                 data = undersample_logdf, family = "binomial")
+set.seed(104)
+train(HeartDisease ~ . -`Age_category_Cat25-29` -Race_CatOther 
+      -`Diabetic_CatYes (during pregnancy)`, data = undersample_logdf, 
+      method = "glm", family = "binomial", trControl = fitControl, 
+      metric = "ROC" )
+summary(heart_log2)
+```
+
+After removing the insignificant variables with justified secondary research, we built a model w/interpretability with a ROC of **0.8399337** as our final model.
+
+```{r log_predict, warning = FALSE, message = FALSE}
+set.seed(104)
+predictTrain1 = predict(heart_log2, type = "response")
+ROCRpred1 = prediction(predictTrain1, undersample_df$HeartDisease)
+ROCRperf1 = performance(ROCRpred1, "tpr", "fpr")
+plot(ROCRperf1, colorize = TRUE, print.cutoffs.at = seq(0,1,0.1), 
+     text.adj = c(-0.2,1.7))
+ROCRauc1 = performance(ROCRpred1, "auc")
+ROCRauc1@y.values
+```
 
 Next, we go on to evaluate the confusion matrix classification. 
-**(chunk 55)**
 AUC: 0.8399337 | Accuracy: 0.7625907 | Sensitivity: 0.7814832 | Specificity: 0.7436981
 Lastly, we used the VarImp function to evaluate each variable importance. 
-**(chunk 56)**
+
+```{r log_threshold, warning = FALSE, message = FALSE}
+predictlog = predict(heart_log2, newdata = undersample_logdf, type = "response")
+confRFlog = table(undersample_logdf$HeartDisease, predictlog > 0.5)
+confRFlog
+
+accuracylog = (confRFlog[1,1]+confRFlog[2,2])/sum(confRFlog)
+accuracylog
+sensitivitylog = confRFlog[2,2]/sum(confRFlog[2,1:2])
+sensitivitylog
+specificitylog = confRFlog[1,1]/sum(confRFlog[1,1:2])
+specificitylog
+```
+
 The top 10 variables of importance (desc) to CDC to look out for to prevent heart disease are :
 SexMale, GenHealthFair, AgeCategory80 or older, GenHealthPoor, AgeCategory75-79, AgeCategory70-74, GenHealthGood, StrokeYes, AgeCategory65-69, AgeCategory60-64
 
-\newpage
+```{r var_imp, warning = FALSE, message = FALSE}
+varImp(heart_log,descending)
+```
 
 ## CART Model
 Moving on to our cart model. 
 
-**First Model** **(chunk 57)**
-We first build CART model with optimal cp value. In order to find the optimal cp value to build our CART model, we performed a 10-fold cross-validation, testing cp values from 0 to 0.01 with a step size of 0.0005. We use the same set.seed of 104. We found that the optimal cp is *0.0005* with the highest accuracy of 0.7493346. 
+**First Model**
+We first build CART model with optimal cp value. In order to find the optimal cp value to build our CART model, we performed a 10-fold cross-validation, testing cp values from 0 to 0.01 with a step size of 0.0005. We use the same set.seed of 104. We found that the optimal cp is *0.0005* with the highest accuracy of 0.7493346.
 
-**Second Model** **(chunk 58)**
+```{r cart1, warning = FALSE, message = FALSE}
+library(rpart)
+library(rpart.plot)
+
+fitControl1 = trainControl(method = "cv", number = 10)
+cpGrid1 = expand.grid(.cp = (0:20)*0.0005)
+set.seed(104)
+cvResults1 = train(HeartDisease ~ ., data = undersample_df, method = "rpart", 
+                   trControl = fitControl1, tuneGrid = cpGrid1)
+cvResults1
+```
+
+**Second Model**
 In order to further refine the optimal cp value, we test cp values from 0 to 0.002 with a step size of 0.0001 using the same set.seed of 104. As a result, we found that the optimal cp is *0.0002* with a improved highest accuracy of 0.7513963. Using the optimal cp (0.0002), we build the cart model.
+
+```{r cart2, warning = FALSE, message = FALSE}
+fitControl2 = trainControl(method = "cv", number = 10)
+cpGrid2 = expand.grid(.cp = (0:20)*0.0001)
+set.seed(104)
+cvResults2 = train(HeartDisease ~ ., data = undersample_df, method = "rpart", 
+                   trControl = fitControl2, tuneGrid = cpGrid2)
+cvResults2
+
+cartdata1 = rpart(HeartDisease ~ ., data = undersample_df, 
+                  control = rpart.control(cp = cvResults2["bestTune"]))
+prp(cartdata1, extra = 104, under = TRUE, tweak=3)
+```
 
 **Third Model** **(chunk 59)**
 In order to get a smaller tree to interpret, we decide to increase the cp value manually and sacrifice some accuracy for interpretability. 
+
+```{r cart3, warning = FALSE, message = FALSE}
+cartdata2 = rpart(HeartDisease ~ ., data = undersample_df, 
+                  control = rpart.control(cp = 0.0025))
+prp(cartdata2, extra = 104, under = TRUE, tweak=1)
+```
 
 From the tree, we can observe that *AgeCategory* is the most important variable to predict heart disease, followed by *GenHealth*. This shows that people who are older than aged 50-54 have a higher chance of getting heart disease as compared to people who are younger than aged 50-54. Also, for those who are older than age 50-54, they would have a even higher chance of getting heart disease if they have a Genhealth rating of fair and poor. Next two important variables would be *stroke* and *DiffWalk*.
 
@@ -338,6 +673,27 @@ We can conclude based on CART model that those who are older than aged 50-54 and
 CART AUC: 0.777596 | CART Accuracy: 0.7460206 | CART Sensitivity: 0.7953656 | CART Specificity: 0.6966755
 Our CART model records an AUC score of **0.777596**, we will then be building the Random Forest model next to assess its performance.
 
+```{r cart4, warning = FALSE, message = FALSE}
+predictCART2 = predict(cartdata2, newdata = undersample_df, type = "prob")
+predcart2 = prediction(predictCART2[,2], undersample_df$HeartDisease)
+perfcart2 = ROCR::performance(predcart2, "tpr", "fpr")
+plot(perfcart2, colorize = TRUE, print.cutoffs.at = seq(0,1,0.1), 
+     text.adj = c(-0.2,1.7))
+auc2 = ROCR::performance(predcart2, "auc")
+auc2@y.values[[1]]
+
+predictcart = predict(cartdata2, newdata = undersample_df, type = "prob")
+confcart = table(undersample_df$HeartDisease, predictcart[,2] >0.5)
+confcart
+
+accuracycart = (confcart[1,1]+confcart[2,2])/sum(confcart)
+accuracycart
+sensitivitycart = confcart[2,2]/sum(confcart[2,1:2])
+sensitivitycart
+specificitycart = confcart[1,1]/sum(confcart[1,1:2])
+specificitycart
+```
+
 ## Random Forest Model
 Moving on to our random forest model.
 
@@ -345,16 +701,83 @@ Moving on to our random forest model.
 We built our first random forest model by not assigning any values to its parameters; mtry (default = 4, based on the square root of the number of independent variable), nodesize (default = 5) and ntree (default = 500) .
 As a result, we managed to achieve a **ROC of 0.9813938 and OOB estimate of error rate: 24.04%**, which is already higher than the previous two predictive models.
 
+```{r rf, warning = FALSE, message = FALSE}
+library(randomForest)
+
+set.seed(104)
+forest1 = randomForest(HeartDisease ~ ., data = undersample_df)
+pred1 = predict(forest1, newdata = undersample_df, type="prob")
+predf1 = prediction(pred1[,2], undersample_df$HeartDisease)
+perf1 = ROCR::performance(predf1, "tpr", "fpr")
+plot(perf1, colorize = TRUE, print.cutoffs.at = seq(0,1,0.1), 
+     text.adj = c(-0.2,1.7))
+aucf1 = ROCR::performance(predf1, "auc")
+aucf1@y.values[[1]]
+forest1
+```
+
 **Second Model**
 For our second model, we decided to find out what is the optimal mtry value. After which, we would use trial and error method to decipher the best combination of mtry and ntree values that would yield us the lowest OOB error.
 
-**Deciphering the optimal mtry value** **(chunk 62)**
+**Deciphering the optimal mtry value**
 To find the optimal mtry value, which gives the smallest OOB error for different ntree values, we went on to experiment with the tuneRF code.
 As observed from OOB Error Diagram, we can infer that the best mtry for the different ntree values is **about 2**.
 Hence, we will look to test out different random forest model using **mtry = 2 to mtry = 3.**
 
+```{r rf_mtry, warning = FALSE, message = FALSE}
+set.seed(104)
+mtry = tuneRF(undersample_df[2:18],undersample_df$HeartDisease, ntreeTry=2000, 
+              stepFactor=1.5,improve=0.01, trace=TRUE, plot=TRUE)
+best.m = mtry[mtry[, 2] == min(mtry[, 2]), 1]
+mtry
+best.m
+```
+Our findings are as follow:
+
+For ntree = 500,
+      mtry  OOBError
+**2.OOB    2 0.2366004**
+3.OOB    3 0.2381661
+4.OOB    4 0.2415845
+6.OOB    6 0.2476384
+
+For ntree = 1000,
+      mtry  OOBError
+**2.OOB    2 0.2356088**
+3.OOB    3 0.2377486
+4.OOB    4 0.2415845
+6.OOB    6 0.2476645
+
+For ntree = 1500,
+      mtry  OOBError
+**2.OOB    2 0.2362873**
+3.OOB    3 0.2380617
+4.OOB    4 0.2408799
+6.OOB    6 0.2475341
+
+For ntree = 2000,
+      mtry   OOBError
+**2.OOB    2 0.2357654**
+3.OOB    3 0.2376442
+4.OOB    4 0.2416106
+6.OOB    6 0.2470383
+
 **Deciphering the optimal ntree value** **(chunk 63)**
 Using mtry = 2 to mtry = 3, we utilize the trial and error method with the code below to find lowest OOB estimate of error rate.
+
+```{r rf_model2, warning = FALSE, message = FALSE}
+set.seed(104)
+forest2 = randomForest(HeartDisease ~ . , data = undersample_df, ntree = 1000, 
+                       mtry = 2, importance = TRUE)
+predictforest2 = predict(forest2, newdata = undersample_df, type = "prob")
+predf2 = prediction(predictforest2[,2], undersample_df$HeartDisease)
+perf2 = ROCR::performance(predf2, "tpr", "fpr")
+plot(perf2, colorize = TRUE, print.cutoffs.at = seq(0,1,0.1), 
+     text.adj = c(-0.2,1.7))
+aucf2 = ROCR::performance(predf2, "auc")
+aucf2@y.values[[1]]
+forest2
+```
 
 We use the ntree = 500 to form a baseline comparison as to which mtry to choose. From there we chose mtry = 2, which has the lowest OOB estimate of error rate at ntree = 500.
 After that, we slowly increase the ntree to 1000, to see which ntree value gives the lowest OOB estimate of error. 
@@ -369,11 +792,47 @@ If the tree is grown to its full depth, predictive power would be reduced. There
 OOB estimate of  error rate: 23.65%
 AUC: 0.9084451 | Accuracy: 0.8126142 | Sensitivity: 0.84839 | Specificity: 0.7768384
 
-**Out-of-Sample Results:** **(chunk 65)**
+```{r rf_accuracy, warning = FALSE, message = FALSE}
+predictForest = predict(forest2, newdata = undersample_df)
+confRF2 = table(undersample_df$HeartDisease, predictForest)
+confRF2
+accuracyRF2 = (confRF2[1,1]+confRF2[2,2])/sum(confRF2)
+accuracyRF2
+sensitivityRF2 = confRF2[2,2]/sum(confRF2[2,1:2])
+sensitivityRF2
+specificityRF2 = confRF2[1,1]/sum(confRF2[1,1:2])
+specificityRF2
+```
+
+**Out-of-Sample Results:**
 AUC: 0.8382554 | Accuracy: 0.7236056 | Sensitivity: 0.8217243 | Specificity: 0.7144209
+
+```{r rftest_accuracy, warning = FALSE, message = FALSE}
+predictTest = predict(forest2, newdata = test_df, type = "prob")
+predftest = prediction(predictTest[,2], test_df$HeartDisease)
+perftest = ROCR::performance(predftest, "tpr", "fpr")
+plot(perftest)
+aucftest = ROCR::performance(predftest, "auc")
+aucftest@y.values[[1]]
+
+predictForestTest = predict(forest2, newdata = test_df)
+confRFtest = table(test_df$HeartDisease, predictForestTest)
+confRFtest
+accuracyRFtest = (confRFtest[1,1]+confRFtest[2,2])/sum(confRFtest)
+accuracyRFtest
+sensitivityRFtest = confRFtest[2,2]/sum(confRFtest[2,1:2])
+sensitivityRFtest
+specificityRFtest = confRFtest[1,1]/sum(confRFtest[1,1:2])
+specificityRFtest
+```
 
 **Determining which variables are important** **(chunk 66)**
 After concluding that Random Forest is our best model based on its higher AUC score (as compared to Logistic Regression and CART), we then find out what are the important variables in determining the risk of Heart Disease. By using the importance() function, which utilizes two different methods in determining the importance: mean decrease in accuracy and mean decrease in Gini.
+
+```{r rf_varimp, warning = FALSE, message = FALSE}
+importance(forest2)
+varImpPlot(forest2)
+```
 
 Mean Decrease in Gini is the average of a variable’s total decrease in node impurity, weighted by the proportion of samples reaching that node in each individual decision tree in the random forest. A higher Mean Decrease in Gini indicates higher variable importance. 
 Mean Decrease in Accuracy expresses how much accuracy the model losses by excluding each variable. A higher Mean Decrease in Accuracy, the higher the variable importance.
@@ -415,8 +874,6 @@ Based on general knowledge, US healthcare costs are notoriously high to seek med
 
 **Creating New Variables and Using New Functions:**
 In our performance model, what we can do better given less time constraint would be to look into how we can create new variables on top of the given variables in the data set. We can also look into functions in R such as MLR and GridSearch to improve the accuracy of our various performance models.
-
-\newpage
 
 # References
 
@@ -471,594 +928,3 @@ NIH. (2018, June 1). Heart Health and Aging.
 https://www.nia.nih.gov/health/heart-health-and-aging
 
 Weidner G. (2020, May). Why do men get more heart disease than women? An international perspective. J Am Coll Health. 2000 May;48(6):291-4. doi: 10.1080/07448480009596270. PMID: 10863872.
-
-
-
-
-
-
-
-
-
-**Chunk 12**
-```{r stroke, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x = Stroke, fill = HeartDisease)) + 
-  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
-  labs(y = "Proportion", title = "Stroke vs Heart Disease")
-```
-
-**Chunk 13**
-```{r diff_walking, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x = DiffWalking, fill = HeartDisease)) + 
-  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
-  labs(y = "Proportion", title = "Walking Difficulty vs Heart Disease")
-```
-
-**Chunk 14**
-```{r sex, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x=Sex, fill=HeartDisease)) + geom_bar(position = "fill") + 
-  scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
-  labs(y = "Proportion", title = "Sex vs Heart Disease")
-```
-
-**Chunk 15**
-```{r age_category, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x = AgeCategory, fill = HeartDisease)) + 
-  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
-  labs(y = "Proportion", title = "Age vs Heart Disease") + 
-  scale_x_discrete(guide = guide_axis(angle = 90))
-```
-
-**Chunk 16**
-```{r race, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x = Race, fill = HeartDisease)) + 
-  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
-  labs(y = "Proportion", title = "Race vs Heart Disease") + 
-  scale_x_discrete(guide = guide_axis(angle = 50))
-```
-
-**Chunk 17**
-```{r diabetic, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x = Diabetic, fill = HeartDisease)) + 
-  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
-  labs(y = "Proportion", title = "Diabetic vs Heart Disease")
-```
-
-**Chunk 18**
-```{r physical_activity, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x = PhysicalActivity, fill = HeartDisease)) + 
-  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
-  labs(y = "Proportion", title = "Physical Activity vs Heart Disease")
-```
-
-**Chunk 19**
-```{r gen_health, warning = FALSE, message = FALSE, results = FALSE}
-ranking = c("Poor", "Fair", "Good", "Very good", "Excellent")
-ggplot(df_normalised, aes(x = factor(GenHealth, level = ranking), 
-                          fill = HeartDisease)) + geom_bar(position = "fill") + 
-  scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
-  labs(x="General Health", y="Proportion",title="General Health vs Heart Disease")
-```
-
-**Chunk 20**
-
-
-**Chunk 21**
-```{r kidney_disease, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x = KidneyDisease, fill = HeartDisease)) + 
-  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
-  labs(y = "Proportion", title = "Kidney Disease vs Heart Disease")
-```
-
-**Chunk 22**
-```{r skin_cancer, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x = SkinCancer, fill = HeartDisease)) + 
-  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
-  labs(y = "Proportion", title = "Skin Cancer vs Heart Disease")
-```
-**Chunk 23**
-```{r match_alcohol_drinking1, warning = FALSE, message=FALSE}
-library(expss)
-cross_cpct(df, HeartDisease, AlcoholDrinking)
-```
-
-**Chunk 24**
-```{r match, message = FALSE, warning = FALSE}
-library(MatchIt)
-```
-
-**Chunk 25**
-```{r match_alcohol_drinking2, warning = FALSE, message=FALSE}
-matching = matchit(AlcoholDrinking ~ BMI + Smoking + Stroke + PhysicalHealth + 
-                     MentalHealth + DiffWalking + Sex + AgeCategory + Race + 
-                     Diabetic + PhysicalActivity + GenHealth + SleepTime + 
-                     Asthma + KidneyDisease + SkinCancer, data = df, 
-                   method = "nearest", ratio = 1)
-result = summary(matching)
-```
-
-**Chunk 26**
-```{r match_alcohol_drinking3, warning = FALSE, message=FALSE}
-plot(matching, type = "hist")
-```
-
-**Chunk 27**
-```{r match_alcohol_drinking4, warning = FALSE, message=FALSE}
-plot(matching, type = "jitter")
-```
-
-**Chunk 28**
-```{r match_alcohol_drinking5, warning = FALSE, message=FALSE}
-Matched = match.data(matching)
-Matched$HeartDisease = as.factor(Matched$HeartDisease)
-Matched$AlcoholDrinking = as.factor(Matched$AlcoholDrinking)
-```
-
-**Chunk 29**
-```{r match_alcohol_drinking6, warning = FALSE, message = FALSE}
-cross_cpct(Matched, HeartDisease, AlcoholDrinking)
-```
-
-**Chunk 30**
-```{r match_race1, warning = FALSE, message = FALSE}
-data0 = df
-data0$NotWhite = ifelse(data0$Race == "White", "No", "Yes")
-data0$Race = NULL
-data0[sapply(data0, is.character)] <- lapply(data0[sapply(data0,is.character)],
-                                             as.factor)
-```
-
-**Chunk 31**
-```{r match_race2, warning = FALSE, message = FALSE}
-library(expss)
-cross_cpct(data0, HeartDisease, NotWhite)
-```
-
-**Chunk 32**
-```{r match_race3, warning = FALSE, message = FALSE}
-matching1 = matchit(NotWhite ~ BMI + Smoking + Stroke + PhysicalHealth + 
-                      MentalHealth + DiffWalking + Sex + AgeCategory + 
-                      AlcoholDrinking + Diabetic + PhysicalActivity + GenHealth + 
-                      SleepTime + Asthma + KidneyDisease + SkinCancer, 
-                    data = data0, method = "nearest", ratio = 1)
-result = summary(matching1)
-```
-
-**Chunk 33**
-```{r match_race4, warning = FALSE, message = FALSE}
-plot(matching1, type = "hist")
-```
-
-**Chunk 34**
-```{r match_race5, warning = FALSE, message = FALSE}
-plot(matching1, type = "jitter")
-```
-
-**Chunk 35**
-```{r match_race6, warning = FALSE, message = FALSE}
-Matched1 = match.data(matching1)
-Matched1$HeartDisease = as.factor(Matched1$HeartDisease)
-Matched1$NotWhite = as.factor(Matched1$NotWhite)
-```
-
-**Chunk 36**
-```{r match_race7, warning = FALSE, message = FALSE}
-cross_cpct(Matched1, HeartDisease, NotWhite)
-```
-
-**Chunk 37**
-```{r match_diabetes1, warning = FALSE, message = FALSE}
-df0 = df
-df0_PregDiab = subset(df0,df0$Diabetic == "Yes (during pregnancy)")
-df0_PregDiab[sapply(df0_PregDiab, is.character)] <- lapply(df0_PregDiab
-                                                           [sapply(df0_PregDiab,
-                                                                  is.character)]
-                                                           ,as.factor)
-```
-
-**Chunk 38**
-```{r match_diabetes2, warning = FALSE, message = FALSE}
-df1 = df
-df1_Diabetes = subset(df1, df1$Diabetic == "Yes")
-df1_Diabetes[sapply(df1_Diabetes, is.character)] <- lapply(df1_Diabetes
-                                                           [sapply(df1_Diabetes,
-                                                                  is.character)]
-                                                           ,as.factor)
-```
-
-**Chunk 39**
-```{r match_diabetes3, warning = FALSE, message = FALSE}
-data2 = rbind(df1_Diabetes, df0_PregDiab)
-```
-
-**Chunk 40**
-```{r match_diabetes4, warning = FALSE, message = FALSE}
-library(expss)
-cross_cpct(data2, HeartDisease, Diabetic)
-```
-
-**Chunk 41**
-```{r match_diabetes5, warning = FALSE, message = FALSE}
-matching2 = matchit(Diabetic ~ BMI + Smoking + Stroke + PhysicalHealth +
-                      MentalHealth + DiffWalking + Sex + AgeCategory + 
-                      AlcoholDrinking + Race + PhysicalActivity + GenHealth + 
-                      SleepTime + Asthma + KidneyDisease + SkinCancer, 
-                    data = data2, method = "nearest", ratio = 1)
-result = summary(matching2)
-```
-
-**Chunk 42**
-```{r match_diabetes6, warning = FALSE, message = FALSE}
-plot(matching2, type = "hist")
-```
-
-**Chunk 43**
-```{r match_diabetes7, warning = FALSE, message = FALSE}
-plot(matching2, type = "jitter")
-```
-
-**Chunk 44**
-```{r match_diabetes8, warning = FALSE, message = FALSE}
-Matched2 = match.data(matching2)
-Matched2$HeartDisease = as.factor(Matched2$HeartDisease)
-Matched2$Diabetic = as.factor(Matched2$Diabetic)
-```
-
-**Chunk 45**
-```{r match_diabetes9, warning = FALSE, message = FALSE}
-cross_cpct(Matched2, HeartDisease, Diabetic)
-```
-
-**Chunk 46**
-```{r data_split, warning = FALSE, message = FALSE}
-library(caTools)
-set.seed(104)
-split = sample.split(df_normalised$HeartDisease, SplitRatio = 0.70)
-train_df = subset(df_normalised, split == TRUE)
-test_df = subset(df_normalised, split == FALSE)
-```
-
-**Chunk 47**
-```{r data_balancing, warning = FALSE, message = FALSE}
-library(ROSE)
-library(ROCR)
-
-undersample_df = ovun.sample(HeartDisease~., data = train_df, 
-                             method = "under", N = 38322)$data
-
-ggplot(undersample_df, aes(x=HeartDisease)) + geom_bar() + 
-  geom_text(stat='count', aes(label=..count..), vjust=-0.2)
-```
-
-**Chunk 48**
-```{r logmodel, warning = FALSE, message = FALSE}
-library(caret)
-fitControl = trainControl(method = "cv", number = 10, classProbs = TRUE, 
-                          summaryFunction = twoClassSummary)
-```
-
-**Chunk 49**
-```{r correlation_matrix, warning = FALSE, message = FALSE}
-train_df[sapply(train_df, is.factor)] <- lapply(train_df[sapply(train_df, 
-                                                                is.factor)], 
-                                                as.numeric)
-
-library(corrplot)
-pearson = cor(train_df, method = "pearson")
-corrplot(pearson, method = "color", addCoef.col="black", order = "AOE", 
-         tl.cex = 0.7, tl.offset = 1,  number.cex=0.5)
-
-```
-
-**Chunk 50**
-```{r log_summary, warning = FALSE, message = FALSE}
-heart_log = glm(HeartDisease ~ ., data = undersample_df, family = "binomial")
-set.seed(104)
-train(HeartDisease ~ ., data = undersample_df, method = "glm", 
-      family = "binomial", trControl = fitControl, metric = "ROC" )
-summary(heart_log)
-```
-
-**Chunk 51**
-```{r anova, warning = FALSE, message = FALSE}
-anova(heart_log, test="Chisq")
-```
-
-**Chunk 52**
-```{r variable_removal, warning = FALSE, message = FALSE}
-undersample_logdf  = undersample_df
-
-Age_category_Cat = undersample_logdf$AgeCategory
-AgeCategory_Num = as.data.frame(model.matrix(~Age_category_Cat))
-AgeCategory_Num[1] = NULL
-undersample_logdf = cbind(undersample_logdf, AgeCategory_Num)
-undersample_logdf$AgeCategory = NULL
-
-Race_Cat = undersample_logdf$Race
-Race_Num = as.data.frame(model.matrix(~Race_Cat))
-Race_Num[1] = NULL
-undersample_logdf = cbind(undersample_logdf, Race_Num)
-undersample_logdf$Race = NULL
-
-Diabetic_Cat = undersample_logdf$Diabetic
-Diabetic_Num = as.data.frame(model.matrix(~Diabetic_Cat))
-Diabetic_Num[1] = NULL
-undersample_logdf = cbind(undersample_logdf, Diabetic_Num)
-undersample_logdf$Diabetic = NULL
-```
-
-**Chunk 53**
-```{r log_summary2, warning = FALSE, message = FALSE}
-heart_log2 = glm(HeartDisease ~ . -`Age_category_Cat25-29` -Race_CatOther 
-                 -`Diabetic_CatYes (during pregnancy)`,
-                 data = undersample_logdf, family = "binomial")
-set.seed(104)
-train(HeartDisease ~ . -`Age_category_Cat25-29` -Race_CatOther 
-      -`Diabetic_CatYes (during pregnancy)`, data = undersample_logdf, 
-      method = "glm", family = "binomial", trControl = fitControl, 
-      metric = "ROC" )
-summary(heart_log2)
-```
-
-**Chunk 54**
-```{r log_predict, warning = FALSE, message = FALSE}
-set.seed(104)
-predictTrain1 = predict(heart_log2, type = "response")
-ROCRpred1 = prediction(predictTrain1, undersample_df$HeartDisease)
-ROCRperf1 = performance(ROCRpred1, "tpr", "fpr")
-plot(ROCRperf1, colorize = TRUE, print.cutoffs.at = seq(0,1,0.1), 
-     text.adj = c(-0.2,1.7))
-ROCRauc1 = performance(ROCRpred1, "auc")
-ROCRauc1@y.values
-```
-
-**Chunk 55**
-```{r log_threshold, warning = FALSE, message = FALSE}
-predictlog = predict(heart_log2, newdata = undersample_logdf, type = "response")
-confRFlog = table(undersample_logdf$HeartDisease, predictlog > 0.5)
-confRFlog
-
-accuracylog = (confRFlog[1,1]+confRFlog[2,2])/sum(confRFlog)
-accuracylog
-sensitivitylog = confRFlog[2,2]/sum(confRFlog[2,1:2])
-sensitivitylog
-specificitylog = confRFlog[1,1]/sum(confRFlog[1,1:2])
-specificitylog
-```
-
-**Chunk 56**
-```{r var_imp, warning = FALSE, message = FALSE}
-varImp(heart_log,descending)
-```
-
-**Chunk 57**
-```{r cart1, warning = FALSE, message = FALSE}
-library(rpart)
-library(rpart.plot)
-
-fitControl1 = trainControl(method = "cv", number = 10)
-cpGrid1 = expand.grid(.cp = (0:20)*0.0005)
-set.seed(104)
-cvResults1 = train(HeartDisease ~ ., data = undersample_df, method = "rpart", 
-                   trControl = fitControl1, tuneGrid = cpGrid1)
-cvResults1
-```
-
-**Chunk 58**
-```{r cart2, warning = FALSE, message = FALSE}
-fitControl2 = trainControl(method = "cv", number = 10)
-cpGrid2 = expand.grid(.cp = (0:20)*0.0001)
-set.seed(104)
-cvResults2 = train(HeartDisease ~ ., data = undersample_df, method = "rpart", 
-                   trControl = fitControl2, tuneGrid = cpGrid2)
-cvResults2
-
-cartdata1 = rpart(HeartDisease ~ ., data = undersample_df, 
-                  control = rpart.control(cp = cvResults2["bestTune"]))
-prp(cartdata1, extra = 104, under = TRUE, tweak=3)
-```
-
-**Chunk 59**
-```{r cart3, warning = FALSE, message = FALSE}
-cartdata2 = rpart(HeartDisease ~ ., data = undersample_df, 
-                  control = rpart.control(cp = 0.0025))
-prp(cartdata2, extra = 104, under = TRUE, tweak=1)
-```
-
-**Chunk 60**
-```{r cart4, warning = FALSE, message = FALSE}
-predictCART2 = predict(cartdata2, newdata = undersample_df, type = "prob")
-predcart2 = prediction(predictCART2[,2], undersample_df$HeartDisease)
-perfcart2 = ROCR::performance(predcart2, "tpr", "fpr")
-plot(perfcart2, colorize = TRUE, print.cutoffs.at = seq(0,1,0.1), 
-     text.adj = c(-0.2,1.7))
-auc2 = ROCR::performance(predcart2, "auc")
-auc2@y.values[[1]]
-
-predictcart = predict(cartdata2, newdata = undersample_df, type = "prob")
-confcart = table(undersample_df$HeartDisease, predictcart[,2] >0.5)
-confcart
-
-accuracycart = (confcart[1,1]+confcart[2,2])/sum(confcart)
-accuracycart
-sensitivitycart = confcart[2,2]/sum(confcart[2,1:2])
-sensitivitycart
-specificitycart = confcart[1,1]/sum(confcart[1,1:2])
-specificitycart
-```
-
-**Chunk 61**
-nodesize = 1, mtry = 4, ntree= 500: [ROC = 0.9813938, OOB estimate of error rate: 24.04%]
-```{r rf, warning = FALSE, message = FALSE}
-library(randomForest)
-
-set.seed(104)
-forest1 = randomForest(HeartDisease ~ ., data = undersample_df)
-pred1 = predict(forest1, newdata = undersample_df, type="prob")
-predf1 = prediction(pred1[,2], undersample_df$HeartDisease)
-perf1 = ROCR::performance(predf1, "tpr", "fpr")
-plot(perf1, colorize = TRUE, print.cutoffs.at = seq(0,1,0.1), 
-     text.adj = c(-0.2,1.7))
-aucf1 = ROCR::performance(predf1, "auc")
-aucf1@y.values[[1]]
-forest1
-```
-
-**Chunk 62**
-```{r rf_mtry, warning = FALSE, message = FALSE}
-set.seed(104)
-mtry = tuneRF(undersample_df[2:18],undersample_df$HeartDisease, ntreeTry=2000, 
-              stepFactor=1.5,improve=0.01, trace=TRUE, plot=TRUE)
-best.m = mtry[mtry[, 2] == min(mtry[, 2]), 1]
-mtry
-best.m
-```
-Our findings are as follow:
-
-For ntree = 500,
-      mtry  OOBError
-**2.OOB    2 0.2366004**
-3.OOB    3 0.2381661
-4.OOB    4 0.2415845
-6.OOB    6 0.2476384
-
-For ntree = 1000,
-      mtry  OOBError
-**2.OOB    2 0.2356088**
-3.OOB    3 0.2377486
-4.OOB    4 0.2415845
-6.OOB    6 0.2476645
-
-For ntree = 1500,
-      mtry  OOBError
-**2.OOB    2 0.2362873**
-3.OOB    3 0.2380617
-4.OOB    4 0.2408799
-6.OOB    6 0.2475341
-
-For ntree = 2000,
-      mtry   OOBError
-**2.OOB    2 0.2357654**
-3.OOB    3 0.2376442
-4.OOB    4 0.2416106
-6.OOB    6 0.2470383
-
-**Chunk 63**
-```{r rf_model2, warning = FALSE, message = FALSE}
-set.seed(104)
-forest2 = randomForest(HeartDisease ~ . , data = undersample_df, ntree = 1000, 
-                       mtry = 2, importance = TRUE)
-predictforest2 = predict(forest2, newdata = undersample_df, type = "prob")
-predf2 = prediction(predictforest2[,2], undersample_df$HeartDisease)
-perf2 = ROCR::performance(predf2, "tpr", "fpr")
-plot(perf2, colorize = TRUE, print.cutoffs.at = seq(0,1,0.1), 
-     text.adj = c(-0.2,1.7))
-aucf2 = ROCR::performance(predf2, "auc")
-aucf2@y.values[[1]]
-forest2
-```
-
-**Chunk 64**
-```{r rf_accuracy, warning = FALSE, message = FALSE}
-predictForest = predict(forest2, newdata = undersample_df)
-confRF2 = table(undersample_df$HeartDisease, predictForest)
-confRF2
-accuracyRF2 = (confRF2[1,1]+confRF2[2,2])/sum(confRF2)
-accuracyRF2
-sensitivityRF2 = confRF2[2,2]/sum(confRF2[2,1:2])
-sensitivityRF2
-specificityRF2 = confRF2[1,1]/sum(confRF2[1,1:2])
-specificityRF2
-```
-
-**Chunk 65**
-```{r rftest_accuracy, warning = FALSE, message = FALSE}
-predictTest = predict(forest2, newdata = test_df, type = "prob")
-predftest = prediction(predictTest[,2], test_df$HeartDisease)
-perftest = ROCR::performance(predftest, "tpr", "fpr")
-plot(perftest)
-aucftest = ROCR::performance(predftest, "auc")
-aucftest@y.values[[1]]
-
-predictForestTest = predict(forest2, newdata = test_df)
-confRFtest = table(test_df$HeartDisease, predictForestTest)
-confRFtest
-accuracyRFtest = (confRFtest[1,1]+confRFtest[2,2])/sum(confRFtest)
-accuracyRFtest
-sensitivityRFtest = confRFtest[2,2]/sum(confRFtest[2,1:2])
-sensitivityRFtest
-specificityRFtest = confRFtest[1,1]/sum(confRFtest[1,1:2])
-specificityRFtest
-```
-
-**Chunk 66**
-```{r rf_varimp, warning = FALSE, message = FALSE}
-importance(forest2)
-varImpPlot(forest2)
-```
-
-**Chunk 67**
-Setting threshold value to 0.4 for Logistic Regression, CART and Random Forest
-Followed by its accuracy, sensitivity and specificity
-
-Logistic Regression
-Accuracy: 0.7601117 | Sensitivity: 0.8647774 | Specificity: 0.655446
-```{r log_threshold1, warning = FALSE, message = FALSE}
-predictlognew = predict(heart_log2, newdata = undersample_logdf, 
-                        type = "response")
-confRFlognew = table(undersample_logdf$HeartDisease, predictlog > 0.4)
-confRFlognew
-
-accuracylognew = (confRFlognew[1,1]+confRFlognew[2,2])/sum(confRFlognew)
-accuracylognew
-sensitivitylognew = confRFlognew[2,2]/sum(confRFlognew[2,1:2])
-sensitivitylognew
-specificitylognew = confRFlognew[1,1]/sum(confRFlognew[1,1:2])
-specificitylognew
-```
-
-CART
-Accuracy: 0.736757 | Sensitivity: 0.842336 | Specificity: 0.6311779
-```{r cart_accuracy, warning = FALSE, message = FALSE}
-predictcartnew = predict(cartdata2, newdata = undersample_df, type = "prob")
-confcartnew = table(undersample_df$HeartDisease, predictcartnew[,2] >0.4)
-confcartnew
-
-accuracycartnew = (confcartnew[1,1]+confcartnew[2,2])/sum(confcartnew)
-accuracycartnew
-sensitivitycartnew = confcartnew[2,2]/sum(confcartnew[2,1:2])
-sensitivitycartnew
-specificitycartnew = confcartnew[1,1]/sum(confcartnew[1,1:2])
-specificitycartnew
-```
-
-Random Forest
-Accuracy: 0.8004801 | Sensitivity: 0.8832003 | Specificity: 0.71776
-```{r rf_threshold, warning = FALSE, message = FALSE}
-set.seed(104)
-k = 0.6
-cutoff=c(k,1-k)
-set.seed(104)
-forest2new = randomForest(HeartDisease ~ . , data = undersample_df, 
-                          ntree = 1000, mtry = 2, importance = TRUE, 
-                          cutoff = cutoff)
-predictforest2new = predict(forest2new, newdata = undersample_df, type = "prob")
-predf2new = prediction(predictforest2new[,2], undersample_df$HeartDisease)
-perf2new = ROCR::performance(predf2new, "tpr", "fpr")
-plot(perf2new, colorize = TRUE, print.cutoffs.at = seq(0,1,0.1), 
-     text.adj = c(-0.2,1.7))
-aucf2new = ROCR::performance(predf2new, "auc")
-aucf2new@y.values[[1]]
-forest2new
-```
-
-
-predictForestnew = predict(forest2new, newdata = undersample_df)
-confRF2new = table(undersample_df$HeartDisease, predictForestnew)
-confRF2new
-accuracyRF2new = (confRF2new[1,1]+confRF2new[2,2])/sum(confRF2new)
-accuracyRF2new
-sensitivityRF2new = confRF2new[2,2]/sum(confRF2new[2,1:2])
-sensitivityRF2new
-specificityRF2new = confRF2new[1,1]/sum(confRF2new[1,1:2])
-specificityRF2new
