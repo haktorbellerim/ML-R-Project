@@ -1,7 +1,6 @@
 ---
-title: "Final Project G4"
-author: "G2 Group 4 - Callista Kan, Fong Jun Hao, Joel Ang, Lim Shi Hao, Nur Hakim
-  Bin Zahrin"
+title: "CDC Heart Disease Indicators - Machine Learning Project"
+author: "Nur Hakim Bin Zahrin"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   pdf_document:
