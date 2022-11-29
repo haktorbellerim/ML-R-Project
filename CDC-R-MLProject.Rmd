@@ -22,7 +22,7 @@ vis_miss(df, warn_large_data = FALSE)
 
 ## Checking for Skewness
 Taking a similar approach to our Kaggle competition, we explored the data set and investigated on the relative skewness of the independent variables. A heavily skewed dataset would result in biasedness towards higher values, negatively affecting our model's predictive performance later.
-For the numerical variables, after plotting the histograms and calculating the skewness values, we found the variables *BMI*, *PhysicalHealth* and *MentalHealth* to be significantly skewed, with only *SleepTime* having a skewness of < 1 **(chunk 3)**. As such, we performed a logarithmic transformation to reduce the skewness. 
+For the numerical variables, after plotting the histograms and calculating the skewness values, we found the variables *BMI*, *PhysicalHealth* and *MentalHealth* to be significantly skewed, with only *SleepTime* having a skewness of < 1. As such, we performed a logarithmic transformation to reduce the skewness. 
 
 ```{r skewness, message = FALSE, warning = FALSE}
 library(tidyverse)
@@ -84,7 +84,7 @@ df_normalised %>%
 ## Checking for Class Imbalance 
 Our group also investigated whether our data set was imbalanced - whereby one of the classes (minority) in a two-class data set is represented by a very small number of instances in comparison to the other (majority) class (Garcia & Mollineda, 2012). Class imbalance may have significant detrimental effects on our prediction performance because they are often biased towards the majority class. To ensure that no misclassification occurs within the minority class, this class imbalance issue needs to be resolved. 
 
-As observed in the graph below, our initial suspicions were true **(chunk 5)**. Since the minority class (HeartDisease = "Yes") is the more important class for our prediction later, our group looked to address this class imbalance issue later in our *Predictive Analytics* section. 
+As observed in the graph below, our initial suspicions were true. Since the minority class (HeartDisease = "Yes") is the more important class for our prediction later, our group looked to address this class imbalance issue later in our *Predictive Analytics* section. 
 
 ```{r class_imbalance, warning = FALSE, message = FALSE}
 ggplot(df_normalised, aes(x=HeartDisease)) + geom_bar() + 
@@ -114,13 +114,13 @@ ggplot(df_normalised, aes(x = BMI, fill = HeartDisease)) +
 summary(df_normalised$BMI)
 ```
 
-**Data Findings (chunk 6)**: We see that the mean BMI of individuals with heart disease is higher than that of individuals without heart disease, which indicates to us that individuals with higher BMI are more likely to develop heart disease . This is also consistent with our secondary findings that indicate that BMI has an effect on an individual developing heart disease. 
+**Data Findings**: We see that the mean BMI of individuals with heart disease is higher than that of individuals without heart disease, which indicates to us that individuals with higher BMI are more likely to develop heart disease . This is also consistent with our secondary findings that indicate that BMI has an effect on an individual developing heart disease. 
 
 **PhysicalHealth: No. of days in past 30 days where individual had poor physical health (inc. physical injury and illness)**
 
 **Secondary Findings**: No. of days in the past 30 days where the individual had poor physical health (includes physical injury and illness). When individuals have poor physical heath, they engage in less physical activities as they need to spend time to recover. Without regular physical activity to help maintain a healthy weight and lifestyle, there might be potential risk of higher blood pressure, cholesterol and blood sugar levels which increases risk for heart disease and heart attack (CDC, n.d.)
 
-**Data Findings (chunk 7)**: We see that individuals with good physical health were less likely to develop heart disease . Again, this corroborates with our secondary research findings.
+**Data Findings**: We see that individuals with good physical health were less likely to develop heart disease . Again, this corroborates with our secondary research findings.
 
 ```{r physical_health, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x = PhysicalHealth, fill = HeartDisease)) + 
@@ -133,7 +133,7 @@ summary(df_normalised$PhysicalHealth)
 
 **Secondary Findings**: No. of days in the past 30 days where the individual had poor mental health. Individuals experiencing poor mental health such as depression, anxiety, stress and PTSD may experience certain physiological effects on their body, such as increased cardiac reactivity (increased heart rate and blood pressure) and reduced blood flow to the heart. Overtime, these physiological effects can in turn lead to heart disease (CDC, n.d.).
 
-**Data Findings (chunk 8)**: Similar to our findings from *PhysicalHealth*, individuals with good mental health were less likely to develop heart disease . Notwithstanding, the distribution is more uniform here compared to in *PhysicalHealth*. Again, this corroborates with our secondary research findings.
+**Data Findings**: Similar to our findings from *PhysicalHealth*, individuals with good mental health were less likely to develop heart disease . Notwithstanding, the distribution is more uniform here compared to in *PhysicalHealth*. Again, this corroborates with our secondary research findings.
 
 ```{r mental_health, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised,aes(x = MentalHealth,fill = HeartDisease)) + 
@@ -146,7 +146,7 @@ summary(df_normalised$MentalHealth)
 
 **Secondary Findings**: Adults who sleep < 7 hours each night are more likely to have health problems including heart attack and disease. During normal sleep, blood pressure goes down, having sleep problems means your blood pressure stays higher for longer period of time. Lack of sleep can also lead to unhealthy weight gain as not getting enough sleep may affect a part of the brain which controls hunger. On the other hand, a good sleep can help an individual improve blood sugar control, preventing Type 2 diabetes, which is a risk factor of heart disease (CDC, n.d.).
 
-**Data Findings (chunk 9)**: From our graph, less hours of sleep has an effect on an individual developing heart disease as observed in the height in the density curve for individuals without heart disease. For example, at SleepTime = 8, we can see a higher proportion of people without heart disease sleeping 8 hours on average compared to those with heart disease. Again, this corroborates with our secondary research findings.
+**Data Findings**: From our graph, less hours of sleep has an effect on an individual developing heart disease as observed in the height in the density curve for individuals without heart disease. For example, at SleepTime = 8, we can see a higher proportion of people without heart disease sleeping 8 hours on average compared to those with heart disease. Again, this corroborates with our secondary research findings.
 
 ```{r sleep_time, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised,aes(x = SleepTime, fill = HeartDisease)) + 
@@ -161,7 +161,7 @@ For our categorical variables, we utilized the *ggplot2* package to draw up bar 
 
 **Secondary Findings**: No. of days in the past 30 days where the individual had poor mental health. Chemicals in cigarette smoke cause the blood to thicken and form clots inside veins and arteries. Blockage from a clot can in turn lead to heart attack. When arteries carrying blood to heart muscles are narrowed by plaque or blocked by clots, coronary heart disease will occur (CDC, 2014).
 
-**Data Findings (chunk 10)**: We see a greater proportion of individuals developing heart disease when they have smoked at least 100 cigarettes in their entire life, which indicates that smoking increases the likelihood of an individual developing heart disease . Again, this corroborates with our secondary research findings. 
+**Data Findings**: We see a greater proportion of individuals developing heart disease when they have smoked at least 100 cigarettes in their entire life, which indicates that smoking increases the likelihood of an individual developing heart disease . Again, this corroborates with our secondary research findings. 
 
 ```{r smoking, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x = Smoking, fill = HeartDisease)) + 
@@ -173,7 +173,7 @@ ggplot(df_normalised, aes(x = Smoking, fill = HeartDisease)) +
 
 **Secondary Findings**: Alcohol consumption can raise the levels of fat in the blood. Individuals with high triglycerides often have high levels of bad cholesterol and low levels of good cholesterol. This results in clogged arteries and in turn, heart attack can result (AlcoholThinkAgain, 2022). Long-term consumption also weakens and thins the heart muscle, affecting its ability to pump blood efficiently. The lack of blood flow will lead to heart failure and other health issues (Barwell, 2018). 
 
-**Data Findings (chunk 11)**: Surprisingly, our graph shows that there is a greater proportion of non-heavy drinkers developing heart disease, contradicting with our secondary research findings. In the *diagnostic analytics* portion of our research, we will further discuss this relationship to understand whether any causal effects are present. 
+**Data Findings**: Surprisingly, our graph shows that there is a greater proportion of non-heavy drinkers developing heart disease, contradicting with our secondary research findings. In the *diagnostic analytics* portion of our research, we will further discuss this relationship to understand whether any causal effects are present. 
 
 ```{r alcohol_drinking, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x = AlcoholDrinking, fill = HeartDisease)) + 
@@ -185,7 +185,7 @@ ggplot(df_normalised, aes(x = AlcoholDrinking, fill = HeartDisease)) +
 
 **Secondary Findings**: The heart and brain shares deep neurological connection. Brain damage from strokes can lead to inflammation in the heart or even, heart damage (AHA, 2020). 
 
-**Data Findings**: It strongly suggests that individuals who had stroke before have a higher possibility of developing heart disease **(chunk 12)**. Again, this corroborates with our secondary research findings. 
+**Data Findings**: It strongly suggests that individuals who had stroke before have a higher possibility of developing heart disease. Again, this corroborates with our secondary research findings. 
 
 ```{r stroke, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x = Stroke, fill = HeartDisease)) + 
@@ -197,7 +197,7 @@ ggplot(df_normalised, aes(x = Stroke, fill = HeartDisease)) +
 
 **Secondary Findings**: When an individual has serious difficulties walking, he/she tends to engage in less physical activities. As a result, the blood circulation to the muscles in the limbs decrease further, resulting in breathlessness and tiredness of the muscles, which are symptoms of heart failure.
 
-**Data Findings (chunk 13)**: Like our findings in *Stroke*, a very large proportion of individuals who face difficulties walking/climbing stairs have heart disease, indicating that there is a higher probability for these individuals to develop heart disease. Again, this corroborates with our secondary research findings. 
+**Data Findings**: Like our findings in *Stroke*, a very large proportion of individuals who face difficulties walking/climbing stairs have heart disease, indicating that there is a higher probability for these individuals to develop heart disease. Again, this corroborates with our secondary research findings. 
 
 ```{r diff_walking, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x = DiffWalking, fill = HeartDisease)) + 
@@ -209,7 +209,7 @@ ggplot(df_normalised, aes(x = DiffWalking, fill = HeartDisease)) +
 
 **Secondary Findings**: Heart disease is the leading cause of death for men in the US, killing 382,776 men in 2020 — about 1 in every 4 male deaths (CDC, n.d.). Men's coping with stressful events may be less adaptive physiologically, behaviorally, and emotionally, contributing to increased risk of heart disease (Weidner, 2020). 
 
-**Data Findings (chunk 14)**: We see a larger proportion of males developing heart disease, which indicates to us that males have a higher probability of developing the disease. Again, this corroborates with our secondary research findings. 
+**Data Findings**: We see a larger proportion of males developing heart disease, which indicates to us that males have a higher probability of developing the disease. Again, this corroborates with our secondary research findings. 
 
 ```{r sex, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x=Sex, fill=HeartDisease)) + geom_bar(position = "fill") + 
@@ -221,7 +221,7 @@ ggplot(df_normalised, aes(x=Sex, fill=HeartDisease)) + geom_bar(position = "fill
 
 **Secondary Findings**: People age 65 and older are much more likely than younger people to suffer from hart attack or develop heart disease. Aging can cause changes in the heart and blood vessels. When an individual gets older, the heart cannot beat as fast during physical activities or times of stress. As a result, increasing the individual risk of heart disease. Furthermore, older individuals face increased stiffness of the large arteries called arteriosclerosis, or hardening of the arteries, which result in high blood pressure as well (NIH, 2018). 
 
-**Data Findings (chunk 15)**: The proportion of individuals who have heart disease steadily increases with age, indicating that older individuals have a greater probability of developing heart disease . Again, this corroborates with our secondary research findings.  
+**Data Findings**: The proportion of individuals who have heart disease steadily increases with age, indicating that older individuals have a greater probability of developing heart disease . Again, this corroborates with our secondary research findings.  
 
 ```{r age_category, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x = AgeCategory, fill = HeartDisease)) + 
@@ -234,7 +234,7 @@ ggplot(df_normalised, aes(x = AgeCategory, fill = HeartDisease)) +
 
 **Secondary Findings**: Heart disease risk factors are more common among ethnic minorities. Social factors also known as social determinants of health, drive these health disparities. In the US, social factors put the Black, Hispanic and Asian people at a disadvantage (CDC, n.d.). These groups tend to carry a heavier economic and social burden, as a result, they have lower average income and limited access to quality healthcare and resources like nutritious food, which in turn, causes them to face disadvantages that affect their risks for heart disease (Cleveland, 2022). 
 
-**Data Findings (chunk 16)**: We observed that Asians and Hispanics have a lower proportion of individuals developing heart disease, which contradicts our secondary research findings. Similar to *AlcoholDrinking*, we will further discuss this relationship to understand whether any causal effects are present in our diagnostic analytics portion. 
+**Data Findings**: We observed that Asians and Hispanics have a lower proportion of individuals developing heart disease, which contradicts our secondary research findings. Similar to *AlcoholDrinking*, we will further discuss this relationship to understand whether any causal effects are present in our diagnostic analytics portion. 
 
 ```{r race, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x = Race, fill = HeartDisease)) + 
@@ -247,7 +247,7 @@ ggplot(df_normalised, aes(x = Race, fill = HeartDisease)) +
 
 **Secondary Findings**: High blood sugar can damage blood vessels and nerves that control an individual's heart. Individuals with diabetes are more likely to suffer from other conditions that raise the risk for heart disease, for example, high blood pressure and high cholesterol. High blood pressure increases the force of blood through arteries and can damage artery walls. High cholesterol can lead to plaque forming on damaged artery walls (CDC, n.d.). Furthermore, those with gestational diabetes (diabetes during pregnancy) has double the risk of heart disease for women with an average age of 48 (Lewin, 2021).
 
-**Data Findings (chunk 17)**: We see that diabetes has an effect on an individual contracting heart disease, with borderline diabetes having an intermediate pattern between having and not having diabetes. Our findings contradict our secondary research on gestational diabetes which seems to pose a lower risk in contracting heart disease according to our graph, despite it doubling the risk for women as stated in our secondary findings. Similar to *AlcoholDrinking* and *Race*, we will further discuss this relationship to understand whether any causal effects are present in our diagnostic analytics portion. 
+**Data Findings**: We see that diabetes has an effect on an individual contracting heart disease, with borderline diabetes having an intermediate pattern between having and not having diabetes. Our findings contradict our secondary research on gestational diabetes which seems to pose a lower risk in contracting heart disease according to our graph, despite it doubling the risk for women as stated in our secondary findings. Similar to *AlcoholDrinking* and *Race*, we will further discuss this relationship to understand whether any causal effects are present in our diagnostic analytics portion. 
 
 ```{r diabetic, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x = Diabetic, fill = HeartDisease)) + 
@@ -259,7 +259,7 @@ ggplot(df_normalised, aes(x = Diabetic, fill = HeartDisease)) +
 
 **Secondary Findings**: Not getting enough physical activity can lead to heart disease — even for people who have no other risk factors. It can also increase the likelihood of developing other heart disease risk factors, including obesity, high blood pressure, high blood cholesterol, and type 2 diabetes. Engaging in regular physical activities bring various benefits to the body such as reducing feelings of anxiety, improving sleep quality and many others (CDC, n.d.).
 
-**Data Findings (chunk 18)**: There is a larger proportion of individuals who don't engage in any physical activities/exercises developing heart disease, which indicates a less active and fit individual have a higher probability of contracting heart disease. Again, this corroborates with our secondary research findings. 
+**Data Findings**: There is a larger proportion of individuals who don't engage in any physical activities/exercises developing heart disease, which indicates a less active and fit individual have a higher probability of contracting heart disease. Again, this corroborates with our secondary research findings. 
 
 ```{r physical_activity, warning = FALSE, message = FALSE, results = FALSE}
 ggplot(df_normalised, aes(x = PhysicalActivity, fill = HeartDisease)) + 
@@ -271,7 +271,7 @@ ggplot(df_normalised, aes(x = PhysicalActivity, fill = HeartDisease)) +
 
 **Secondary Findings**: Individuals who lives a healthy lifestyle will have lower chances of developing heart diseases. This is because leading risk factors of heart diseases such as high blood pressure, high-LDL cholesterol, diabetes, smoking, obesity, unhealthy diet and physical inactivity will not be characteristics of the individual (CDC, n.d.).
 
-**Data Findings (chunk 19)**: We see that the proportion of individuals with heart disease increases with poorer perceptions of their general health levels. We can suggest that a better general health lowers the chances of developing heart disease for the individual. Again, this corroborates with our secondary research findings.
+**Data Findings**: We see that the proportion of individuals with heart disease increases with poorer perceptions of their general health levels. We can suggest that a better general health lowers the chances of developing heart disease for the individual. Again, this corroborates with our secondary research findings.
 
 ```{r gen_health, warning = FALSE, message = FALSE, results = FALSE}
 ranking = c("Poor", "Fair", "Good", "Very good", "Excellent")
@@ -364,7 +364,7 @@ cross_cpct(Matched, HeartDisease, AlcoholDrinking)
 **Race** 
 Our data finding showed that Asians and Hispanics have a lower proportion of individuals developing heart disease while White Americans have higher risk which contradicts to our secondary findings where social disparity for example, income level, puts the Black, Hispanic and Asian people at a disadvantage, increasing their risk for heart disease. As such, we will again conduct a causality test between the white population and the rest to identify any potential causal effect.
 
-In this causality test, we were interested in exploring if there would be any changes in probability of an individual developing heart disease if they were white (9.2%) compared to if they were in any other race groups, grouping them under "not-white" (6.5%) **(chunk 31)**. After matching, we can observe that the percentage of those who are not-white and develop heart disease (7.6%) is still lower than those who are white (6.5%) **(chunk 36)**. Hence, opposing our secondary research where the non-white leads to increased probability of developing heart disease. 
+In this causality test, we were interested in exploring if there would be any changes in probability of an individual developing heart disease if they were white (9.2%) compared to if they were in any other race groups, grouping them under "not-white" (6.5%). After matching, we can observe that the percentage of those who are not-white and develop heart disease (7.6%) is still lower than those who are white (6.5%). Hence, opposing our secondary research where the non-white leads to increased probability of developing heart disease. 
 
 ```{r match_race1, warning = FALSE, message = FALSE}
 data0 = df
@@ -407,9 +407,9 @@ cross_cpct(Matched1, HeartDisease, NotWhite)
 ```
 
 **Diabetes & during Pregnancy** 
-Our data finding showed that diabetes has greater effects on developing heart disease (22%) as compared to Gestational Diabetes (Diabetes during Pregnancy) (4.2%) **(chunk 40)** , contradicting with our secondary finding where pregnant women suffer from double the risk of developing heart disease, whether if they had healthy blood sugar levels, pre-diabetes or Type 2 diabetes. Hence, we will be conducting a causality test to investigate the effect of the treatment of "being pregnant with diabetes" on the probability of heart disease. 
+Our data finding showed that diabetes has greater effects on developing heart disease (22%) as compared to Gestational Diabetes (Diabetes during Pregnancy) (4.2%) , contradicting with our secondary finding where pregnant women suffer from double the risk of developing heart disease, whether if they had healthy blood sugar levels, pre-diabetes or Type 2 diabetes. Hence, we will be conducting a causality test to investigate the effect of the treatment of "being pregnant with diabetes" on the probability of heart disease. 
 
-After matching, we can observe that either type of Diabetes does not have a significant difference on the probability of developing heart disease, with our matched results showing a higher probability of developing heart disease for diabetes (6.9%) rather than gestational diabetes (4.2%) **(chunk 45)**. 
+After matching, we can observe that either type of Diabetes does not have a significant difference on the probability of developing heart disease, with our matched results showing a higher probability of developing heart disease for diabetes (6.9%) rather than gestational diabetes (4.2%). 
 
 ```{r match_diabetes1, warning = FALSE, message = FALSE}
 df0 = df
@@ -508,7 +508,7 @@ fitControl = trainControl(method = "cv", number = 10, classProbs = TRUE,
 ```
 
 ### Pearson Correlation Matrix
-To determine the more significant and important variables for our regression model, we plotted a pearson correlation matrix to visualize the correlations between the different variables.**(chunk 48)** Before plotting, we converted all the factor variables to numeric variables. After plotting, we observed there were minimal interaction effect between the independent variables as well as no signs of multicollinearity present. Thus, we included all the independent variables to build our first logistic regression model.
+To determine the more significant and important variables for our regression model, we plotted a pearson correlation matrix to visualize the correlations between the different variables. Before plotting, we converted all the factor variables to numeric variables. After plotting, we observed there were minimal interaction effect between the independent variables as well as no signs of multicollinearity present. Thus, we included all the independent variables to build our first logistic regression model.
 
 ```{r correlation_matrix, warning = FALSE, message = FALSE}
 train_df[sapply(train_df, is.factor)] <- lapply(train_df[sapply(train_df, 
@@ -533,7 +533,7 @@ train(HeartDisease ~ ., data = undersample_df, method = "glm",
 summary(heart_log)
 ```
 
-Next, we wanted to find difference between the null deviance and the residual deviance to show how our model is doing against the null model (a model with only the intercept). However, we observed for every variable added till Skin cancer, the Pr(>Chi) remains statistically significant at 0.01% level.In other words, all the variables can be used to explain the models' variation while remaining statistically significant.**(chunk 51)**Since there are no signs of variables having multicollinearity & Pr(Chi) < 0.01, as much as possible we want to keep the variables in our models.
+Next, we wanted to find difference between the null deviance and the residual deviance to show how our model is doing against the null model (a model with only the intercept). However, we observed for every variable added till Skin cancer, the Pr(>Chi) remains statistically significant at 0.01% level.In other words, all the variables can be used to explain the models' variation while remaining statistically significant. Since there are no signs of variables having multicollinearity & Pr(Chi) < 0.01, as much as possible we want to keep the variables in our models.
 
 ```{r anova, warning = FALSE, message = FALSE}
 anova(heart_log, test="Chisq")
@@ -656,7 +656,7 @@ cartdata1 = rpart(HeartDisease ~ ., data = undersample_df,
 prp(cartdata1, extra = 104, under = TRUE, tweak=3)
 ```
 
-**Third Model** **(chunk 59)**
+**Third Model**
 In order to get a smaller tree to interpret, we decide to increase the cp value manually and sacrifice some accuracy for interpretability. 
 
 ```{r cart3, warning = FALSE, message = FALSE}
@@ -669,7 +669,7 @@ From the tree, we can observe that *AgeCategory* is the most important variable 
 
 We can conclude based on CART model that those who are older than aged 50-54 and with a Genhealth rating of fair and poor, these group of people should be given extra attention as they have the highest risk of getting heart disease.
 
-**In-Sample model performance** **(chunk 60)**
+**In-Sample model performance**
 CART AUC: 0.777596 | CART Accuracy: 0.7460206 | CART Sensitivity: 0.7953656 | CART Specificity: 0.6966755
 Our CART model records an AUC score of **0.777596**, we will then be building the Random Forest model next to assess its performance.
 
@@ -697,7 +697,7 @@ specificitycart
 ## Random Forest Model
 Moving on to our random forest model.
 
-**First Model** **(chunk 61)**
+**First Model**
 We built our first random forest model by not assigning any values to its parameters; mtry (default = 4, based on the square root of the number of independent variable), nodesize (default = 5) and ntree (default = 500) .
 As a result, we managed to achieve a **ROC of 0.9813938 and OOB estimate of error rate: 24.04%**, which is already higher than the previous two predictive models.
 
@@ -762,7 +762,7 @@ For ntree = 2000,
 4.OOB    4 0.2416106
 6.OOB    6 0.2470383
 
-**Deciphering the optimal ntree value** **(chunk 63)**
+**Deciphering the optimal ntree value**
 Using mtry = 2 to mtry = 3, we utilize the trial and error method with the code below to find lowest OOB estimate of error rate.
 
 ```{r rf_model2, warning = FALSE, message = FALSE}
@@ -788,7 +788,7 @@ If the tree is grown to its full depth, predictive power would be reduced. There
 
 **Conclusion of our Random Forest Model**
 
-**In-Sample Results:** **(chunk 64)**
+**In-Sample Results:**
 OOB estimate of  error rate: 23.65%
 AUC: 0.9084451 | Accuracy: 0.8126142 | Sensitivity: 0.84839 | Specificity: 0.7768384
 
@@ -826,7 +826,7 @@ specificityRFtest = confRFtest[1,1]/sum(confRFtest[1,1:2])
 specificityRFtest
 ```
 
-**Determining which variables are important** **(chunk 66)**
+**Determining which variables are important**
 After concluding that Random Forest is our best model based on its higher AUC score (as compared to Logistic Regression and CART), we then find out what are the important variables in determining the risk of Heart Disease. By using the importance() function, which utilizes two different methods in determining the importance: mean decrease in accuracy and mean decrease in Gini.
 
 ```{r rf_varimp, warning = FALSE, message = FALSE}
@@ -839,7 +839,7 @@ Mean Decrease in Accuracy expresses how much accuracy the model losses by exclud
 
 # Presciptive Analytics 
 
-As a result, the most important independent variables identified from the Mean Decrease Gini from our final Random Forest model are AgeCategory, GenHealth, BMI, Diff Walking, Diabetic and Physical Health, which are coherent with the important variables from the logistic regression and CART model. Therefore, we recommend CDC to focus on curating targeted awareness programs specifically for these variables in order to reduce the probability of one getting heart disease. **(chunk 66)**
+As a result, the most important independent variables identified from the Mean Decrease Gini from our final Random Forest model are AgeCategory, GenHealth, BMI, Diff Walking, Diabetic and Physical Health, which are coherent with the important variables from the logistic regression and CART model. Therefore, we recommend CDC to focus on curating targeted awareness programs specifically for these variables in order to reduce the probability of one getting heart disease.
 
 **AgeCategory:** CDC can focus on advocating and conducting regular health checks especially for those who are older. As one gets older, it is of utmost importance to have their blood pressure checked regularly, even if he or she is healthy (NIH, 2018).
 
@@ -868,7 +868,7 @@ The data set from Kaggle has been cleaned from about 300 variables to 20 variabl
 **Refining Dataset:**
 The annual telephone survey conducted by CDC could be improved and refined to contain less subjective questions and more objective and factual questions with specified medical terms and/or conditions rather than a rating system like "Excellent, Very Good, Good, Fair, Poor". In terms of time period, CDC can look into obtaining data set of individuals over a few years after than 30 days for a more accurate measurement of the variables on the risk of heart disease. 
 
-**Readjusting the Threshold Value (chunk 67):**
+**Readjusting the Threshold Value:**
 We used the default threshold value of 0.5 for all of our predictive models. By doing so, we are assuming that the Cost of failing to detect positives is the same as the Cost of raising false alarms, which shouldn't be the case. If we were to reduce the threshold value, we are lowering the number of false negatives cases (predicted people have actual heart disease, do not have it) while increasing false positives cases (predicting people who do not have actual heart disease, have it).
 Based on general knowledge, US healthcare costs are notoriously high to seek medical aid and is cheaper to prevent heart disease (fitness programs) than to cure the disease (e.g therapy sessions/surgeries). However we can't reduce thresholds without diving deeper with industry-specific domain knowledge to look at various factors impacting the threshold (e.g. Cost incurred for Health Check-Up/ Medical Insurance VS Cost incurred due to Heart Disease). As a lower threshold might incur more healthcare costs which might be counter-intuitive to prevent further heart disease.
 
