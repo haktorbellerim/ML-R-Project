@@ -25,17 +25,75 @@ Heart disease is one of the leading causes of death for people in the US. About 
 In this report, we will be determining a good prediction performance model for CDC as well as US residents on whether if an individual will or will not develop heart disease, given the lifestyle factors and health conditions of that individual. For CDC, we are looking to identify key predictors of heart disease for CDC to focus on when raising awareness on prevention of heart disease, to reduce healthcare cost. For the US residents, when they notice a slight issue in one of these key indicators, they should seek medical assistance as soon as possible, to prevent it early. We will be looking through the *Descriptive, Diagnostic, Predictive and Prescriptive* angles. 
 
 # Importing & Pre-processing/Cleaning of Dataset
-Refer to annex **(chunk 1)**.
+df = read.csv("heart_2020_cleaned.csv", stringsAsFactors = TRUE)
+str(df)
 
 ## Checking for Missing Data
-Before proceeding forward with any data transformations, our team looked to identify whether there were any missing data in the dataset using the *naniar* package. Fortunately, the data had already been pre-cleaned by the Kaggle creator and no missing values were seen **(chunk 2)**.
+Before proceeding forward with any data transformations, our team looked to identify whether there were any missing data in the dataset using the *naniar* package. Fortunately, the data had already been pre-cleaned by the Kaggle creator and no missing values were seen.
+
+library(naniar)
+vis_miss(df, warn_large_data = FALSE)
 
 ## Checking for Skewness
 Taking a similar approach to our Kaggle competition, we explored the data set and investigated on the relative skewness of the independent variables. A heavily skewed dataset would result in biasedness towards higher values, negatively affecting our model's predictive performance later.
 For the numerical variables, after plotting the histograms and calculating the skewness values, we found the variables *BMI*, *PhysicalHealth* and *MentalHealth* to be significantly skewed, with only *SleepTime* having a skewness of < 1 **(chunk 3)**. As such, we performed a logarithmic transformation to reduce the skewness. 
 
+library(tidyverse)
+library(PerformanceAnalytics)
+library(ggplot2)
+
+skewness(df$BMI, na.rm = TRUE)
+skewness(df$PhysicalHealth, na.rm = TRUE)
+skewness(df$MentalHealth, na.rm = TRUE)
+skewness(df$SleepTime, na.rm = TRUE)
+
+df %>%
+  ggplot(aes(BMI)) +
+  geom_histogram(bins=20) +
+  theme_bw()
+
+df %>%
+  ggplot(aes(PhysicalHealth)) +
+  geom_histogram(bins=20) +
+  theme_bw()
+
+df %>%
+  ggplot(aes(MentalHealth)) +
+  geom_histogram(bins=20) +
+  theme_bw()
+
+df %>%
+  ggplot(aes(SleepTime)) +
+  geom_histogram(bins=20) +
+  theme_bw()
+
 ## Logarithmic Transformation
-We added +1 to our logarithmic transform to remove any negative values that would potentially affect our predictive model later. We then re-plotted the histograms to see the effect of our log transformation **(chunk 4)**. 
+We added +1 to our logarithmic transform to remove any negative values that would potentially affect our predictive model later. We then re-plotted the histograms to see the effect of our log transformation. 
+
+df_normalised <- df %>% 
+  mutate(
+    BMI = log(BMI+1),
+    PhysicalHealth = log(PhysicalHealth+1),
+    MentalHealth = log(MentalHealth+1))
+
+df_normalised %>%
+  ggplot(aes(BMI)) +
+  geom_histogram(bins=20) +
+  theme_bw()
+
+df_normalised %>%
+  ggplot(aes(PhysicalHealth)) +
+  geom_histogram(bins=20) +
+  theme_bw()
+
+df_normalised %>%
+  ggplot(aes(MentalHealth)) +
+  geom_histogram(bins=20) +
+  theme_bw()
+
+ggplot(df_normalised, aes(x=HeartDisease)) + geom_bar() + 
+  geom_text(stat='count', aes(label=..count..), vjust=-0.2)
+
 
 ## Checking for Class Imbalance 
 Our group also investigated whether our data set was imbalanced - whereby one of the classes (minority) in a two-class data set is represented by a very small number of instances in comparison to the other (majority) class (Garcia & Mollineda, 2012). Class imbalance may have significant detrimental effects on our prediction performance because they are often biased towards the majority class. To ensure that no misclassification occurs within the minority class, this class imbalance issue needs to be resolved. 
@@ -58,6 +116,11 @@ For our numerical variables, we utilized the *ggplot2* package to draw up densit
 
 **Secondary Findings**: An individual with a BMI >= 25.0 is overweight. Excess weight can lead to fatty material building up in your arteries, blood vessels carrying blood to your organs. If these arteries get damaged & clogged, it can lead to a heart attack and increase risk of heart disease (BHF, n.d.). Furthermore, obese individuals have higher chance of developing diabetes, which is 2-4 times more likely to be at risk of heart disease (CDC, n.d.). 
 
+ggplot(df_normalised, aes(x = BMI, fill = HeartDisease)) + 
+  geom_density(alpha = 0.5) + scale_fill_manual(values=c("#0ced3d", "#ed0c0c")) + 
+  labs(title = "BMI vs Heart Disease")
+summary(df_normalised$BMI)
+
 **Data Findings (chunk 6)**: We see that the mean BMI of individuals with heart disease is higher than that of individuals without heart disease, which indicates to us that individuals with higher BMI are more likely to develop heart disease . This is also consistent with our secondary findings that indicate that BMI has an effect on an individual developing heart disease. 
 
 **PhysicalHealth: No. of days in past 30 days where individual had poor physical health (inc. physical injury and illness)**
@@ -66,7 +129,10 @@ For our numerical variables, we utilized the *ggplot2* package to draw up densit
 
 **Data Findings (chunk 7)**: We see that individuals with good physical health were less likely to develop heart disease . Again, this corroborates with our secondary research findings.
 
-\newpage
+ggplot(df_normalised, aes(x = PhysicalHealth, fill = HeartDisease)) + 
+  geom_density(alpha = 0.5) + scale_fill_manual(values=c("#0ced3d", "#ed0c0c")) + 
+  labs(title = "Physical Health vs Heart Disease")
+summary(df_normalised$PhysicalHealth)
 
 **MentalHealth: No. of days in past 30 days where individual had poor mental health**
 
@@ -74,12 +140,21 @@ For our numerical variables, we utilized the *ggplot2* package to draw up densit
 
 **Data Findings (chunk 8)**: Similar to our findings from *PhysicalHealth*, individuals with good mental health were less likely to develop heart disease . Notwithstanding, the distribution is more uniform here compared to in *PhysicalHealth*. Again, this corroborates with our secondary research findings.
 
+ggplot(df_normalised,aes(x = MentalHealth,fill = HeartDisease)) + 
+  geom_density(alpha = 0.5) + scale_fill_manual(values=c("#0ced3d", "#ed0c0c")) + 
+  labs(title = "Mental Health vs Heart Disease")
+summary(df_normalised$MentalHealth)
+
 **SleepTime: No. of hours of sleep an individual gets in a 24-hour period**
 
 **Secondary Findings**: Adults who sleep < 7 hours each night are more likely to have health problems including heart attack and disease. During normal sleep, blood pressure goes down, having sleep problems means your blood pressure stays higher for longer period of time. Lack of sleep can also lead to unhealthy weight gain as not getting enough sleep may affect a part of the brain which controls hunger. On the other hand, a good sleep can help an individual improve blood sugar control, preventing Type 2 diabetes, which is a risk factor of heart disease (CDC, n.d.).
 
 **Data Findings (chunk 9)**: From our graph, less hours of sleep has an effect on an individual developing heart disease as observed in the height in the density curve for individuals without heart disease. For example, at SleepTime = 8, we can see a higher proportion of people without heart disease sleeping 8 hours on average compared to those with heart disease. Again, this corroborates with our secondary research findings.
 
+ggplot(df_normalised,aes(x = SleepTime, fill = HeartDisease)) + 
+  geom_density(alpha = 0.5) + scale_fill_manual(values=c("#0ced3d", "#ed0c0c")) + 
+  labs(title = "Sleep Time vs Heart Disease")
+  
 ## Exploratory Data Analysis - Dependent Variables (Categorical)
 For our categorical variables, we utilized the *ggplot2* package to draw up bar plots to compare the proportion of individuals with and without heart disease against our independent variables.
 
@@ -89,11 +164,19 @@ For our categorical variables, we utilized the *ggplot2* package to draw up bar 
 
 **Data Findings (chunk 10)**: We see a greater proportion of individuals developing heart disease when they have smoked at least 100 cigarettes in their entire life, which indicates that smoking increases the likelihood of an individual developing heart disease . Again, this corroborates with our secondary research findings. 
 
+ggplot(df_normalised, aes(x = Smoking, fill = HeartDisease)) + 
+  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
+  labs(y = "Proportion", title = "Smoking vs Heart Disease")
+
 **AlcoholDrinking: Whether individual is a heavy drinker (adult men: >14 drinks/week and adult women: >7 drinks/week)**
 
 **Secondary Findings**: Alcohol consumption can raise the levels of fat in the blood. Individuals with high triglycerides often have high levels of bad cholesterol and low levels of good cholesterol. This results in clogged arteries and in turn, heart attack can result (AlcoholThinkAgain, 2022). Long-term consumption also weakens and thins the heart muscle, affecting its ability to pump blood efficiently. The lack of blood flow will lead to heart failure and other health issues (Barwell, 2018). 
 
 **Data Findings (chunk 11)**: Surprisingly, our graph shows that there is a greater proportion of non-heavy drinkers developing heart disease, contradicting with our secondary research findings. In the *diagnostic analytics* portion of our research, we will further discuss this relationship to understand whether any causal effects are present. 
+
+ggplot(df_normalised, aes(x = AlcoholDrinking, fill = HeartDisease)) + 
+  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
+  labs(y = "Proportion", title = "Alcohol Consumption vs Heart Disease")
 
 **Stroke: Whether individual had stroke before**
 
@@ -384,126 +467,12 @@ https://www.nia.nih.gov/health/heart-health-and-aging
 Weidner G. (2020, May). Why do men get more heart disease than women? An international perspective. J Am Coll Health. 2000 May;48(6):291-4. doi: 10.1080/07448480009596270. PMID: 10863872.
 
 
-# Annex
 
-**Chunk 1**
-```{r import_data, message = FALSE, warning = FALSE}
-df = read.csv("heart_2020_cleaned.csv", stringsAsFactors = TRUE)
-str(df)
-```
 
-**Chunk 2**
-```{r missing_data, message = FALSE, warning = FALSE}
-library(naniar)
-vis_miss(df, warn_large_data = FALSE)
-```
 
-**Chunk 3**
-```{r skewness, message = FALSE, warning = FALSE}
-library(tidyverse)
-library(PerformanceAnalytics)
-library(ggplot2)
 
-skewness(df$BMI, na.rm = TRUE)
-skewness(df$PhysicalHealth, na.rm = TRUE)
-skewness(df$MentalHealth, na.rm = TRUE)
-skewness(df$SleepTime, na.rm = TRUE)
 
-df %>%
-  ggplot(aes(BMI)) +
-  geom_histogram(bins=20) +
-  theme_bw()
 
-df %>%
-  ggplot(aes(PhysicalHealth)) +
-  geom_histogram(bins=20) +
-  theme_bw()
-
-df %>%
-  ggplot(aes(MentalHealth)) +
-  geom_histogram(bins=20) +
-  theme_bw()
-
-df %>%
-  ggplot(aes(SleepTime)) +
-  geom_histogram(bins=20) +
-  theme_bw()
-```
-
-**Chunk 4**
-```{r log_transformation,warning = FALSE, message = FALSE}
-df_normalised <- df %>% 
-  mutate(
-    BMI = log(BMI+1),
-    PhysicalHealth = log(PhysicalHealth+1),
-    MentalHealth = log(MentalHealth+1))
-
-df_normalised %>%
-  ggplot(aes(BMI)) +
-  geom_histogram(bins=20) +
-  theme_bw()
-
-df_normalised %>%
-  ggplot(aes(PhysicalHealth)) +
-  geom_histogram(bins=20) +
-  theme_bw()
-
-df_normalised %>%
-  ggplot(aes(MentalHealth)) +
-  geom_histogram(bins=20) +
-  theme_bw()
-```
-
-**Chunk 5**
-```{r class_imbalance, warning = FALSE, message = FALSE}
-ggplot(df_normalised, aes(x=HeartDisease)) + geom_bar() + 
-  geom_text(stat='count', aes(label=..count..), vjust=-0.2)
-```
-
-**Chunk 6**
-```{r bmi, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x = BMI, fill = HeartDisease)) + 
-  geom_density(alpha = 0.5) + scale_fill_manual(values=c("#0ced3d", "#ed0c0c")) + 
-  labs(title = "BMI vs Heart Disease")
-summary(df_normalised$BMI)
-```
-
-**Chunk 7**
-```{r physical_health, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x = PhysicalHealth, fill = HeartDisease)) + 
-  geom_density(alpha = 0.5) + scale_fill_manual(values=c("#0ced3d", "#ed0c0c")) + 
-  labs(title = "Physical Health vs Heart Disease")
-summary(df_normalised$PhysicalHealth)
-```
-
-**Chunk 8**
-```{r mental_health, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised,aes(x = MentalHealth,fill = HeartDisease)) + 
-  geom_density(alpha = 0.5) + scale_fill_manual(values=c("#0ced3d", "#ed0c0c")) + 
-  labs(title = "Mental Health vs Heart Disease")
-summary(df_normalised$MentalHealth)
-```
-
-**Chunk 9**
-```{r sleep_time, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised,aes(x = SleepTime, fill = HeartDisease)) + 
-  geom_density(alpha = 0.5) + scale_fill_manual(values=c("#0ced3d", "#ed0c0c")) + 
-  labs(title = "Sleep Time vs Heart Disease")
-```
-
-**Chunk 10**
-```{r smoking, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x = Smoking, fill = HeartDisease)) + 
-  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
-  labs(y = "Proportion", title = "Smoking vs Heart Disease")
-```
-
-**Chunk 11**
-```{r alcohol_drinking, warning = FALSE, message = FALSE, results = FALSE}
-ggplot(df_normalised, aes(x = AlcoholDrinking, fill = HeartDisease)) + 
-  geom_bar(position = "fill") + scale_fill_manual(values=c("#AFE1AF", "#D22B2B")) + 
-  labs(y = "Proportion", title = "Alcohol Consumption vs Heart Disease")
-```
 
 **Chunk 12**
 ```{r stroke, warning = FALSE, message = FALSE, results = FALSE}
@@ -1081,7 +1050,7 @@ aucf2new@y.values[[1]]
 forest2new
 ```
 
-```{r rfnew_accuracy, warning = FALSE, message = FALSE}
+
 predictForestnew = predict(forest2new, newdata = undersample_df)
 confRF2new = table(undersample_df$HeartDisease, predictForestnew)
 confRF2new
@@ -1091,4 +1060,3 @@ sensitivityRF2new = confRF2new[2,2]/sum(confRF2new[2,1:2])
 sensitivityRF2new
 specificityRF2new = confRF2new[1,1]/sum(confRF2new[1,1:2])
 specificityRF2new
-```
